@@ -34,6 +34,12 @@ function Court() {
       </svg>
 
       <div className="rotation-buttons">
+        <button
+          onClick={() => setRotationIndex((rotationIndex - 1 + rotations.length) % rotations.length)}
+        >
+          ←
+        </button>
+
         {rotations.map((_, rotationOption) => (
           <button
             key={rotationOption}
@@ -45,6 +51,12 @@ function Court() {
             R{rotationOption + 1}
           </button>
         ))}
+
+        <button
+          onClick={() => setRotationIndex((rotationIndex + 1) % rotations.length)}
+        >
+          →
+        </button>
       </div>
     </div>
   )
