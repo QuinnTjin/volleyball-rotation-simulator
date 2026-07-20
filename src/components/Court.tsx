@@ -84,7 +84,7 @@ function Court() {
               console.log('clicked rotationOption:', rotationOption);}
             }
           >
-            R{rotationOption + 1}
+            {rotationOption + 1}
           </button>
         ))}
 
