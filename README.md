@@ -7,6 +7,14 @@ Currently, two official plugins are available:
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
+## What I want to this to become
+ - can feature both sides of the court and do auto play of both teams
+ - user learns '5-1', '4-2', and '6-2' rotations
+ - teams can build profile of players
+ - customize player dominant hand, height, vertical, and tags of weapons
+ - profile can include tags such as hits cross, setter dumper, pancake flipper
+ - can include rotations and strategies for 2v2, 3v3, and 4v4 volleyball
+
 ## React Compiler
 
 The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
