@@ -1,15 +1,20 @@
 type PlayerProps = {
-  number: number
+  name: string
+  label: string
+  color: string
   x: number
   y: number
 }
 
-function Player({ number, x, y }: PlayerProps) {
+function Player({ name, label, color, x, y }: PlayerProps) {
   return (
     <g transform={`translate(${x}, ${y})`}>
-      <circle r={20} fill="#2d6cdf" stroke="#ffffff" strokeWidth={2} />
-      <text textAnchor="middle" dominantBaseline="central" fill="#ffffff" fontSize={16} fontWeight="bold">
-        {number}
+      <circle r={20} fill={color} stroke="#ffffff" strokeWidth={2} />
+      <text textAnchor="middle" dominantBaseline="central" fill="#ffffff" fontSize={14} fontWeight="bold">
+        {label}
+      </text>
+      <text y={34} textAnchor="middle" fontSize={12} fill="#1b1b1b">
+        {name}
       </text>
     </g>
   )
