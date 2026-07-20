@@ -55,6 +55,11 @@ export const defaultRoster: RosterPlayer[] = [
   { id: 7, name: POSITION_FULL_NAMES.libero, position: 'libero', color: POSITION_COLORS.libero },
 ]
 
+// Dropdown options for the position <select>, labeled with the full name.
+export const POSITION_OPTIONS: { value: PositionKey; label: string }[] = (
+  Object.keys(POSITION_FULL_NAMES) as PositionKey[]
+).map((position) => ({ value: position, label: POSITION_FULL_NAMES[position] }))
+
 // Positions with two roster slots (outside, middle-blocker) get a 1/2
 // suffix based on roster order; single-slot positions (S, OPP, L) don't.
 export function getPositionLabel(player: RosterPlayer, roster: RosterPlayer[]): string {

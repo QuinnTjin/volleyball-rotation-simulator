@@ -59,8 +59,22 @@
   border-top: 1px solid var(--border);
 }
 
-.accordion-body p {
-  margin: 4px 0;
+.accordion-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.accordion-field input,
+.accordion-field select {
+  font: inherit;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text-h);
 }
 
 .court-layout {

@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import Player from './Player'
-import { rotations } from '../rotations'
-import { defaultRoster, getPositionLabel } from '../roster'
+import { buildRotations } from '../rotations'
+import { getPositionLabel } from '../roster'
+import type { RosterPlayer } from '../roster'
 
 // 9m x 9m half-court, scaled at 40px per meter
 const COURT_SIZE = 360
@@ -12,10 +13,15 @@ const BENCH_SIZE = 100
 const BENCH_DOT_X = BENCH_SIZE / 2
 const BENCH_DOT_Y = 40
 
-function Court() {
+type CourtProps = {
+  roster: RosterPlayer[]
+}
+
+function Court({ roster }: CourtProps) {
   const [rotationIndex, setRotationIndex] = useState(0)
+  const rotations = buildRotations(roster)
   const currentRotation = rotations[rotationIndex]
-  const benchedRosterPlayer = defaultRoster.find((player) => player.id === currentRotation.benchedPlayerId)
+  const benchedRosterPlayer = roster.find((player) => player.id === currentRotation.benchedPlayerId)
 
   return (
     <div>
@@ -38,13 +44,13 @@ function Court() {
           />
 
           {currentRotation.onCourt.map((courtPlayer) => {
-            const rosterPlayer = defaultRoster.find((player) => player.id === courtPlayer.playerId)!
+            const rosterPlayer = roster.find((player) => player.id === courtPlayer.playerId)!
 
             return (
               <Player
                 key={courtPlayer.playerId}
                 name={rosterPlayer.name}
-                label={getPositionLabel(rosterPlayer, defaultRoster)}
+                label={getPositionLabel(rosterPlayer, roster)}
                 color={rosterPlayer.color}
                 x={courtPlayer.x}
                 y={courtPlayer.y}
@@ -59,7 +65,7 @@ function Court() {
             {benchedRosterPlayer && (
               <Player
                 name={benchedRosterPlayer.name}
-                label={getPositionLabel(benchedRosterPlayer, defaultRoster)}
+                label={getPositionLabel(benchedRosterPlayer, roster)}
                 color={benchedRosterPlayer.color}
                 x={BENCH_DOT_X}
                 y={BENCH_DOT_Y}

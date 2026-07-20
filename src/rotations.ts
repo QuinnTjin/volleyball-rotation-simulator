@@ -1,5 +1,4 @@
 import type { RosterPlayer } from './roster'
-import { defaultRoster } from './roster'
 
 export type CourtPlayer = {
   playerId: number
@@ -58,5 +57,3 @@ export function buildRotations(roster: RosterPlayer[]): RotationLineup[] {
     return { onCourt, benchedPlayerId }
   })
 }
-
-export const rotations: RotationLineup[] = buildRotations(defaultRoster)
