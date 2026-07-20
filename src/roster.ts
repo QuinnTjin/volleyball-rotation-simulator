@@ -23,12 +23,28 @@ const POSITION_FULL_NAMES: Record<PositionKey, string> = {
   libero: 'Libero',
 }
 
-const POSITION_COLORS: Record<PositionKey, string> = {
-  setter: '#e63946',
-  opposite: '#f4a261',
-  outside: '#457b9d',
-  'middle-blocker': '#2a9d8f',
-  libero: '#ffb703',
+// The only colors a player's dot may be. The color picker renders these as
+// a row of swatches instead of a free-form color input.
+export const COLOR_PALETTE: string[] = [
+  '#d96629',
+  '#0093a5',
+  '#f99d1b',
+  '#12354e',
+  '#437742',
+  '#064f6e',
+  '#642d5e',
+  '#80719e',
+]
+
+// Conventional per-position color, used only to seed each default player's
+// own `color` below. Once seeded, a player's color is independent - editing
+// one player's color never touches another's, even if they share a position.
+const CONVENTIONAL_POSITION_COLORS: Record<PositionKey, string> = {
+  setter: '#d96629',
+  opposite: '#f99d1b',
+  outside: '#0093a5',
+  'middle-blocker': '#437742',
+  libero: '#642d5e',
 }
 
 // 7-player 5-1 roster: setter, opposite, 2 outsides, 2 middle blockers, libero.
@@ -36,23 +52,23 @@ const POSITION_COLORS: Record<PositionKey, string> = {
 // (id 1-6 rotate through the court, id 7 is the libero, who never has a
 // fixed slot and instead swaps in for whichever middle blocker is back row).
 export const defaultRoster: RosterPlayer[] = [
-  { id: 1, name: POSITION_FULL_NAMES.setter, position: 'setter', color: POSITION_COLORS.setter },
-  { id: 2, name: POSITION_FULL_NAMES.outside, position: 'outside', color: POSITION_COLORS.outside },
+  { id: 1, name: POSITION_FULL_NAMES.setter, position: 'setter', color: CONVENTIONAL_POSITION_COLORS.setter },
+  { id: 2, name: POSITION_FULL_NAMES.outside, position: 'outside', color: CONVENTIONAL_POSITION_COLORS.outside },
   {
     id: 3,
     name: POSITION_FULL_NAMES['middle-blocker'],
     position: 'middle-blocker',
-    color: POSITION_COLORS['middle-blocker'],
+    color: CONVENTIONAL_POSITION_COLORS['middle-blocker'],
   },
-  { id: 4, name: POSITION_FULL_NAMES.opposite, position: 'opposite', color: POSITION_COLORS.opposite },
-  { id: 5, name: POSITION_FULL_NAMES.outside, position: 'outside', color: POSITION_COLORS.outside },
+  { id: 4, name: POSITION_FULL_NAMES.opposite, position: 'opposite', color: CONVENTIONAL_POSITION_COLORS.opposite },
+  { id: 5, name: POSITION_FULL_NAMES.outside, position: 'outside', color: CONVENTIONAL_POSITION_COLORS.outside },
   {
     id: 6,
     name: POSITION_FULL_NAMES['middle-blocker'],
     position: 'middle-blocker',
-    color: POSITION_COLORS['middle-blocker'],
+    color: CONVENTIONAL_POSITION_COLORS['middle-blocker'],
   },
-  { id: 7, name: POSITION_FULL_NAMES.libero, position: 'libero', color: POSITION_COLORS.libero },
+  { id: 7, name: POSITION_FULL_NAMES.libero, position: 'libero', color: CONVENTIONAL_POSITION_COLORS.libero },
 ]
 
 // Dropdown options for the position <select>, labeled with the full name.

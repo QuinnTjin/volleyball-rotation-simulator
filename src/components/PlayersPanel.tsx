@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { getPositionLabel, POSITION_OPTIONS } from '../roster'
+import { COLOR_PALETTE, getPositionLabel, POSITION_OPTIONS } from '../roster'
 import type { PositionKey, RosterPlayer } from '../roster'
 
 type PlayersPanelProps = {
   roster: RosterPlayer[]
-  onUpdatePlayer: (playerId: number, changes: Partial<Pick<RosterPlayer, 'name' | 'position'>>) => void
+  onUpdatePlayer: (playerId: number, changes: Partial<Pick<RosterPlayer, 'name' | 'position' | 'color'>>) => void
 }
 
 function PlayersPanel({ roster, onUpdatePlayer }: PlayersPanelProps) {
@@ -60,6 +60,23 @@ function PlayersPanel({ roster, onUpdatePlayer }: PlayersPanelProps) {
                     ))}
                   </select>
                 </label>
+
+                <div className="accordion-field">
+                  <span>Color</span>
+                  <div className="color-palette">
+                    {COLOR_PALETTE.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        className={color === player.color ? 'color-swatch-button selected' : 'color-swatch-button'}
+                        style={{ backgroundColor: color }}
+                        aria-label={`Set color ${color}`}
+                        aria-pressed={color === player.color}
+                        onClick={() => onUpdatePlayer(player.id, { color })}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>
