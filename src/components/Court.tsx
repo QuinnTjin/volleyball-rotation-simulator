@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Player from './Player'
 import { rotations } from '../rotations'
+import { defaultRoster, getPositionLabel } from '../roster'
 
 // 9m x 9m half-court, scaled at 40px per meter
 const COURT_SIZE = 360
@@ -28,9 +29,20 @@ function Court() {
           strokeDasharray="6 4"
         />
 
-        {rotations[rotationIndex].map((player) => (
-          <Player key={player.number} number={player.number} x={player.x} y={player.y} />
-        ))}
+        {rotations[rotationIndex].onCourt.map((courtPlayer) => {
+          const rosterPlayer = defaultRoster.find((player) => player.id === courtPlayer.playerId)!
+
+          return (
+            <Player
+              key={courtPlayer.playerId}
+              name={rosterPlayer.name}
+              label={getPositionLabel(rosterPlayer, defaultRoster)}
+              color={rosterPlayer.color}
+              x={courtPlayer.x}
+              y={courtPlayer.y}
+            />
+          )
+        })}
       </svg>
 
       <div className="rotation-buttons">
