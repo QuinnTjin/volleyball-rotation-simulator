@@ -28,6 +28,7 @@ function Court({ roster }: CourtProps) {
 
   return (
     <div>
+      <h2 className="court-title">5-1 Rotation</h2>
       <div className="court-layout">
         <svg
           width={COURT_SIZE}
@@ -78,6 +79,9 @@ function Court({ roster }: CourtProps) {
         </div>
       </div>
 
+      <h2 className="rotation-number-title">
+        Rotation {rotationIndex + 1} of {rotations.length}
+      </h2>
       <div className="rotation-buttons">
         <button
           disabled={rotationsDisabled}

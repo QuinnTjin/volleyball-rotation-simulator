@@ -126,6 +126,13 @@
   color: var(--text);
 }
 
+.court-title,
+.rotation-number-title {
+  font-size: 14px;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
 .roster-warning-banner {
   margin-top: 12px;
   padding: 8px 12px;
