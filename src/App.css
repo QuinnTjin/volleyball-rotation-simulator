@@ -133,6 +133,14 @@
   margin: 0 0 8px;
 }
 
+select.court-title {
+  font-family: inherit;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+
 .roster-warning-banner {
   margin-top: 12px;
   padding: 8px 12px;

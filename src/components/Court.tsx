@@ -13,11 +13,21 @@ const BENCH_SIZE = 100
 const BENCH_DOT_X = BENCH_SIZE / 2
 const BENCH_DOT_Y = 40
 
+type RotationSystem = {
+  id: string
+  label: string
+}
+
+// Only 5-1 is implemented today; adding a system here is scaffolding only -
+// buildRotations still always runs 5-1 logic until that's wired up.
+const ROTATION_SYSTEMS: RotationSystem[] = [{ id: '5-1', label: '5-1 Rotation' }]
+
 type CourtProps = {
   roster: RosterPlayer[]
 }
 
 function Court({ roster }: CourtProps) {
+  const [rotationSystemId, setRotationSystemId] = useState(ROTATION_SYSTEMS[0].id)
   const [rotationIndex, setRotationIndex] = useState(0)
   const rotations = buildRotations(roster)
   const currentRotation = rotations[rotationIndex]
@@ -28,7 +38,17 @@ function Court({ roster }: CourtProps) {
 
   return (
     <div>
-      <h2 className="court-title">5-1 Rotation</h2>
+      <select
+        className="court-title"
+        value={rotationSystemId}
+        onChange={(event) => setRotationSystemId(event.target.value)}
+      >
+        {ROTATION_SYSTEMS.map((rotationSystem) => (
+          <option key={rotationSystem.id} value={rotationSystem.id}>
+            {rotationSystem.label}
+          </option>
+        ))}
+      </select>
       <div className="court-layout">
         <svg
           width={COURT_SIZE}
