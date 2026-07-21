@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Player from './Player'
 import { buildRotations } from '../rotations'
-import { getPositionLabel } from '../roster'
+import { getPositionLabel, getRosterWarnings } from '../roster'
 import type { RosterPlayer } from '../roster'
 
 // 9m x 9m half-court, scaled at 40px per meter
@@ -22,6 +22,9 @@ function Court({ roster }: CourtProps) {
   const rotations = buildRotations(roster)
   const currentRotation = rotations[rotationIndex]
   const benchedRosterPlayer = roster.find((player) => player.id === currentRotation.benchedPlayerId)
+  const rosterWarnings = getRosterWarnings(roster)
+  const rotationsDisabled = rosterWarnings.length > 0
+  const disabledReason = rosterWarnings.join(' ')
 
   return (
     <div>
@@ -77,6 +80,8 @@ function Court({ roster }: CourtProps) {
 
       <div className="rotation-buttons">
         <button
+          disabled={rotationsDisabled}
+          title={rotationsDisabled ? disabledReason : undefined}
           onClick={() => setRotationIndex((rotationIndex - 1 + rotations.length) % rotations.length)}
         >
           ←
@@ -86,20 +91,30 @@ function Court({ roster }: CourtProps) {
           <button
             key={rotationOption}
             className={rotationOption === rotationIndex ? 'active' : ''}
-            onClick={() => {setRotationIndex(rotationOption);
-              console.log('clicked rotationOption:', rotationOption);}
-            }
+            disabled={rotationsDisabled}
+            title={rotationsDisabled ? disabledReason : undefined}
+            onClick={() => setRotationIndex(rotationOption)}
           >
             {rotationOption + 1}
           </button>
         ))}
 
         <button
+          disabled={rotationsDisabled}
+          title={rotationsDisabled ? disabledReason : undefined}
           onClick={() => setRotationIndex((rotationIndex + 1) % rotations.length)}
         >
           →
         </button>
       </div>
+
+      {rotationsDisabled && (
+        <div className="roster-warning-banner">
+          {rosterWarnings.map((warning) => (
+            <p key={warning}>{warning}</p>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
