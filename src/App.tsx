@@ -8,7 +8,10 @@ import './App.css'
 function App() {
   const [roster, setRoster] = useState<RosterPlayer[]>(defaultRoster)
 
-  function updatePlayer(playerId: number, changes: Partial<Pick<RosterPlayer, 'name' | 'position' | 'color'>>) {
+  function updatePlayer(
+    playerId: RosterPlayer['id'],
+    changes: Partial<Pick<RosterPlayer, 'name' | 'position' | 'color'>>,
+  ) {
     setRoster((currentRoster) =>
       currentRoster.map((player) => (player.id === playerId ? { ...player, ...changes } : player)),
     )

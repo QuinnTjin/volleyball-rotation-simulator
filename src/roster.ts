@@ -1,7 +1,12 @@
+import type { Team } from './models'
+import { defaultTeam } from './models'
+
 export type PositionKey = 'setter' | 'opposite' | 'outside' | 'middle-blocker' | 'libero'
 
 export type RosterPlayer = {
-  id: number
+  id: string
+  teamId: Team['id']
+  lineupNumber: number
   name: string
   position: PositionKey
   color: string
@@ -48,27 +53,67 @@ const CONVENTIONAL_POSITION_COLORS: Record<PositionKey, string> = {
 }
 
 // 7-player 5-1 roster: setter, opposite, 2 outsides, 2 middle blockers, libero.
-// Ids double as the fixed serve-order lineup numbers used in rotations.ts
-// (id 1-6 rotate through the court, id 7 is the libero, who never has a
-// fixed slot and instead swaps in for whichever middle blocker is back row).
+// lineupNumber is the fixed serve-order slot used in rotations.ts (1-6 rotate
+// through the court, 7 is the libero, who never has a fixed slot and instead
+// swaps in for whichever middle blocker is back row). id is a separate,
+// globally-unique player identity - see models.ts for why the two are split.
 export const defaultRoster: RosterPlayer[] = [
-  { id: 1, name: POSITION_FULL_NAMES.setter, position: 'setter', color: CONVENTIONAL_POSITION_COLORS.setter },
-  { id: 2, name: POSITION_FULL_NAMES.outside, position: 'outside', color: CONVENTIONAL_POSITION_COLORS.outside },
   {
-    id: 3,
+    id: 'player-1',
+    teamId: defaultTeam.id,
+    lineupNumber: 1,
+    name: POSITION_FULL_NAMES.setter,
+    position: 'setter',
+    color: CONVENTIONAL_POSITION_COLORS.setter,
+  },
+  {
+    id: 'player-2',
+    teamId: defaultTeam.id,
+    lineupNumber: 2,
+    name: POSITION_FULL_NAMES.outside,
+    position: 'outside',
+    color: CONVENTIONAL_POSITION_COLORS.outside,
+  },
+  {
+    id: 'player-3',
+    teamId: defaultTeam.id,
+    lineupNumber: 3,
     name: POSITION_FULL_NAMES['middle-blocker'],
     position: 'middle-blocker',
     color: CONVENTIONAL_POSITION_COLORS['middle-blocker'],
   },
-  { id: 4, name: POSITION_FULL_NAMES.opposite, position: 'opposite', color: CONVENTIONAL_POSITION_COLORS.opposite },
-  { id: 5, name: POSITION_FULL_NAMES.outside, position: 'outside', color: CONVENTIONAL_POSITION_COLORS.outside },
   {
-    id: 6,
+    id: 'player-4',
+    teamId: defaultTeam.id,
+    lineupNumber: 4,
+    name: POSITION_FULL_NAMES.opposite,
+    position: 'opposite',
+    color: CONVENTIONAL_POSITION_COLORS.opposite,
+  },
+  {
+    id: 'player-5',
+    teamId: defaultTeam.id,
+    lineupNumber: 5,
+    name: POSITION_FULL_NAMES.outside,
+    position: 'outside',
+    color: CONVENTIONAL_POSITION_COLORS.outside,
+  },
+  {
+    id: 'player-6',
+    teamId: defaultTeam.id,
+    lineupNumber: 6,
     name: POSITION_FULL_NAMES['middle-blocker'],
     position: 'middle-blocker',
     color: CONVENTIONAL_POSITION_COLORS['middle-blocker'],
   },
-  { id: 7, name: POSITION_FULL_NAMES.libero, position: 'libero', color: CONVENTIONAL_POSITION_COLORS.libero },
+  {
+    id: 'player-7',
+    teamId: defaultTeam.id,
+    lineupNumber: 7,
+    name: POSITION_FULL_NAMES.libero,
+    position: 'libero',
+    color: CONVENTIONAL_POSITION_COLORS.libero,
+  },
 ]
 
 // How many players each position needs for a valid 5-1 rotation: one

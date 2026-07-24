@@ -4,13 +4,16 @@ import type { PositionKey, RosterPlayer } from '../roster'
 
 type PlayersPanelProps = {
   roster: RosterPlayer[]
-  onUpdatePlayer: (playerId: number, changes: Partial<Pick<RosterPlayer, 'name' | 'position' | 'color'>>) => void
+  onUpdatePlayer: (
+    playerId: RosterPlayer['id'],
+    changes: Partial<Pick<RosterPlayer, 'name' | 'position' | 'color'>>,
+  ) => void
 }
 
 function PlayersPanel({ roster, onUpdatePlayer }: PlayersPanelProps) {
-  const [openPlayerId, setOpenPlayerId] = useState<number | null>(null)
+  const [openPlayerId, setOpenPlayerId] = useState<RosterPlayer['id'] | null>(null)
 
-  function togglePlayer(playerId: number) {
+  function togglePlayer(playerId: RosterPlayer['id']) {
     setOpenPlayerId(playerId === openPlayerId ? null : playerId)
   }
 
