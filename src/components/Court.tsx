@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import clsx from 'clsx'
 import Player from './Player'
 import { buildRotations } from '../rotations'
 import { getPositionLabel, getRosterWarnings } from '../roster'
@@ -39,7 +40,7 @@ function Court({ roster }: CourtProps) {
   return (
     <div>
       <select
-        className="court-title"
+        className="text-sm text-text mb-2 font-inherit border-none bg-transparent p-0 cursor-pointer appearance-none"
         value={rotationSystemId}
         onChange={(event) => setRotationSystemId(event.target.value)}
       >
@@ -49,7 +50,7 @@ function Court({ roster }: CourtProps) {
           </option>
         ))}
       </select>
-      <div className="court-layout">
+      <div className="flex items-start gap-4">
         <svg
           width={COURT_SIZE}
           height={COURT_SIZE}
@@ -83,8 +84,8 @@ function Court({ roster }: CourtProps) {
           })}
         </svg>
 
-        <div className="bench">
-          <h2 className="bench-title">Bench</h2>
+        <div className="flex flex-col items-center border border-border rounded-lg p-2">
+          <h2 className="text-sm text-text">Bench</h2>
           <svg width={BENCH_SIZE} height={BENCH_SIZE} viewBox={`0 0 ${BENCH_SIZE} ${BENCH_SIZE}`}>
             {benchedRosterPlayer && (
               <Player
@@ -99,11 +100,12 @@ function Court({ roster }: CourtProps) {
         </div>
       </div>
 
-      <h2 className="rotation-number-title">
+      <h2 className="text-sm text-text mb-2">
         Rotation {rotationIndex + 1} of {rotations.length}
       </h2>
-      <div className="rotation-buttons">
+      <div className="flex gap-2">
         <button
+          className="disabled:cursor-not-allowed disabled:opacity-50"
           disabled={rotationsDisabled}
           title={rotationsDisabled ? disabledReason : undefined}
           onClick={() => setRotationIndex((rotationIndex - 1 + rotations.length) % rotations.length)}
@@ -114,7 +116,12 @@ function Court({ roster }: CourtProps) {
         {rotations.map((_, rotationOption) => (
           <button
             key={rotationOption}
-            className={rotationOption === rotationIndex ? 'active' : ''}
+            className={clsx(
+              'px-2 py-1 border rounded disabled:cursor-not-allowed disabled:opacity-50',
+              rotationOption === rotationIndex
+                ? 'bg-accent-bg border-accent-border'
+                : 'border-border',
+            )}
             disabled={rotationsDisabled}
             title={rotationsDisabled ? disabledReason : undefined}
             onClick={() => setRotationIndex(rotationOption)}
@@ -124,6 +131,7 @@ function Court({ roster }: CourtProps) {
         ))}
 
         <button
+          className="disabled:cursor-not-allowed disabled:opacity-50"
           disabled={rotationsDisabled}
           title={rotationsDisabled ? disabledReason : undefined}
           onClick={() => setRotationIndex((rotationIndex + 1) % rotations.length)}
@@ -133,7 +141,7 @@ function Court({ roster }: CourtProps) {
       </div>
 
       {rotationsDisabled && (
-        <div className="roster-warning-banner">
+        <div className="mt-3 px-3 py-2 border rounded-md text-[13px] text-left border-[#da525d] bg-[#da525d]/10 text-[#da525d] [&_p+p]:mt-1">
           {rosterWarnings.map((warning) => (
             <p key={warning}>{warning}</p>
           ))}
