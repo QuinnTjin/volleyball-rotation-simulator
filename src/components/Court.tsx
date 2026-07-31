@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import clsx from 'clsx'
 import Player from './Player'
-import { buildRotations } from '../rotations'
+import { buildRotations, ROTATION_COUNT } from '../rotations'
 import { getPositionLabel, getRosterWarnings } from '../roster'
 import type { RosterPlayer } from '../roster'
 
@@ -9,9 +9,10 @@ import type { RosterPlayer } from '../roster'
 const COURT_SIZE = 360
 const ATTACK_LINE = 120 // 3m from the net, scaled
 
-// Small side canvas just big enough for one Player dot + name label.
-const BENCH_SIZE = 100
-const BENCH_DOT_X = BENCH_SIZE / 2
+// Narrow side canvas: one column of Player dots, one row per bench player.
+const BENCH_WIDTH = 100
+const BENCH_ROW_HEIGHT = 84
+const BENCH_DOT_X = BENCH_WIDTH / 2
 const BENCH_DOT_Y = 40
 
 type RotationSystem = {
@@ -30,12 +31,22 @@ type CourtProps = {
 function Court({ roster }: CourtProps) {
   const [rotationSystemId, setRotationSystemId] = useState(ROTATION_SYSTEMS[0].id)
   const [rotationIndex, setRotationIndex] = useState(0)
-  const rotations = buildRotations(roster)
-  const currentRotation = rotations[rotationIndex]
-  const benchedRosterPlayer = roster.find((player) => player.id === currentRotation.benchedPlayerId)
   const rosterWarnings = getRosterWarnings(roster)
   const rotationsDisabled = rosterWarnings.length > 0
   const disabledReason = rosterWarnings.join(' ')
+
+  // While the starting lineup is invalid (mid-edit), the court stays empty:
+  // buildRotations assumes a legal 5-1 lineup, so it only runs once the
+  // warnings clear.
+  const currentRotation = rotationsDisabled ? undefined : buildRotations(roster)[rotationIndex]
+  const benchedStarter = roster.find((player) => player.id === currentRotation?.benchedStarterId)
+
+  // The bench holds every non-starter, plus (in 7-starter lineups) the one
+  // starter sitting out this rotation - drawn first, with a ring marking
+  // them as a starter rather than a regular bench player.
+  const nonStarters = roster.filter((player) => !player.isStarter)
+  const benchPlayers = benchedStarter !== undefined ? [benchedStarter, ...nonStarters] : nonStarters
+  const benchHeight = Math.max(BENCH_ROW_HEIGHT, benchPlayers.length * BENCH_ROW_HEIGHT)
 
   return (
     <div>
@@ -68,7 +79,7 @@ function Court({ roster }: CourtProps) {
             strokeDasharray="6 4"
           />
 
-          {currentRotation.onCourt.map((courtPlayer) => {
+          {currentRotation?.onCourt.map((courtPlayer) => {
             const rosterPlayer = roster.find((player) => player.id === courtPlayer.playerId)!
 
             return (
@@ -86,34 +97,36 @@ function Court({ roster }: CourtProps) {
 
         <div className="flex flex-col items-center border border-border rounded-lg p-2">
           <h2 className="text-sm text-text">Bench</h2>
-          <svg width={BENCH_SIZE} height={BENCH_SIZE} viewBox={`0 0 ${BENCH_SIZE} ${BENCH_SIZE}`}>
-            {benchedRosterPlayer && (
+          <svg width={BENCH_WIDTH} height={benchHeight} viewBox={`0 0 ${BENCH_WIDTH} ${benchHeight}`}>
+            {benchPlayers.map((benchPlayer, benchIndex) => (
               <Player
-                name={benchedRosterPlayer.name}
-                label={getPositionLabel(benchedRosterPlayer, roster)}
-                color={benchedRosterPlayer.color}
+                key={benchPlayer.id}
+                name={benchPlayer.name}
+                label={getPositionLabel(benchPlayer, roster)}
+                color={benchPlayer.color}
                 x={BENCH_DOT_X}
-                y={BENCH_DOT_Y}
+                y={BENCH_DOT_Y + benchIndex * BENCH_ROW_HEIGHT}
+                isBenchedStarter={benchPlayer.id === benchedStarter?.id}
               />
-            )}
+            ))}
           </svg>
         </div>
       </div>
 
       <h2 className="text-sm text-text mb-2">
-        Rotation {rotationIndex + 1} of {rotations.length}
+        Rotation {rotationIndex + 1} of {ROTATION_COUNT}
       </h2>
       <div className="flex gap-2">
         <button
           className="disabled:cursor-not-allowed disabled:opacity-50"
           disabled={rotationsDisabled}
           title={rotationsDisabled ? disabledReason : undefined}
-          onClick={() => setRotationIndex((rotationIndex - 1 + rotations.length) % rotations.length)}
+          onClick={() => setRotationIndex((rotationIndex - 1 + ROTATION_COUNT) % ROTATION_COUNT)}
         >
           ←
         </button>
 
-        {rotations.map((_, rotationOption) => (
+        {Array.from({ length: ROTATION_COUNT }, (_, rotationOption) => (
           <button
             key={rotationOption}
             className={clsx(
@@ -134,7 +147,7 @@ function Court({ roster }: CourtProps) {
           className="disabled:cursor-not-allowed disabled:opacity-50"
           disabled={rotationsDisabled}
           title={rotationsDisabled ? disabledReason : undefined}
-          onClick={() => setRotationIndex((rotationIndex + 1) % rotations.length)}
+          onClick={() => setRotationIndex((rotationIndex + 1) % ROTATION_COUNT)}
         >
           →
         </button>

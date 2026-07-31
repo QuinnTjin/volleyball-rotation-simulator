@@ -4,11 +4,14 @@ type PlayerProps = {
   color: string
   x: number
   y: number
+  isBenchedStarter?: boolean
 }
 
-function Player({ name, label, color, x, y }: PlayerProps) {
+function Player({ name, label, color, x, y, isBenchedStarter = false }: PlayerProps) {
   return (
     <g transform={`translate(${x}, ${y})`}>
+      {/* Dashed ring: this dot is a starter who's off the court this rotation. */}
+      {isBenchedStarter && <circle r={27} fill="none" stroke="#f99d1b" strokeWidth={3} strokeDasharray="5 4" />}
       <circle r={20} fill={color} stroke="#ffffff" strokeWidth={2} />
       <text textAnchor="middle" dominantBaseline="central" fill="#ffffff" fontSize={14} fontWeight="bold">
         {label}

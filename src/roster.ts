@@ -6,7 +6,7 @@ export type PositionKey = 'setter' | 'opposite' | 'outside' | 'middle-blocker' |
 export type RosterPlayer = {
   id: string
   teamId: Team['id']
-  lineupNumber: number
+  isStarter: boolean
   name: string
   position: PositionKey
   color: string
@@ -53,15 +53,15 @@ const CONVENTIONAL_POSITION_COLORS: Record<PositionKey, string> = {
 }
 
 // 7-player 5-1 roster: setter, opposite, 2 outsides, 2 middle blockers, libero.
-// lineupNumber is the fixed serve-order slot used in rotations.ts (1-6 rotate
-// through the court, 7 is the libero, who never has a fixed slot and instead
-// swaps in for whichever middle blocker is back row). id is a separate,
-// globally-unique player identity - see models.ts for why the two are split.
+// All seven default to starters: the six non-liberos form the serve order
+// (rotations.ts derives their slots from position, so no per-player slot is
+// stored here) and the libero swaps in for the back-row middle blocker. id is
+// a globally-unique player identity - see models.ts for why it exists.
 export const defaultRoster: RosterPlayer[] = [
   {
     id: 'player-1',
     teamId: defaultTeam.id,
-    lineupNumber: 1,
+    isStarter: true,
     name: POSITION_FULL_NAMES.setter,
     position: 'setter',
     color: CONVENTIONAL_POSITION_COLORS.setter,
@@ -69,7 +69,7 @@ export const defaultRoster: RosterPlayer[] = [
   {
     id: 'player-2',
     teamId: defaultTeam.id,
-    lineupNumber: 2,
+    isStarter: true,
     name: POSITION_FULL_NAMES.outside,
     position: 'outside',
     color: CONVENTIONAL_POSITION_COLORS.outside,
@@ -77,7 +77,7 @@ export const defaultRoster: RosterPlayer[] = [
   {
     id: 'player-3',
     teamId: defaultTeam.id,
-    lineupNumber: 3,
+    isStarter: true,
     name: POSITION_FULL_NAMES['middle-blocker'],
     position: 'middle-blocker',
     color: CONVENTIONAL_POSITION_COLORS['middle-blocker'],
@@ -85,7 +85,7 @@ export const defaultRoster: RosterPlayer[] = [
   {
     id: 'player-4',
     teamId: defaultTeam.id,
-    lineupNumber: 4,
+    isStarter: true,
     name: POSITION_FULL_NAMES.opposite,
     position: 'opposite',
     color: CONVENTIONAL_POSITION_COLORS.opposite,
@@ -93,7 +93,7 @@ export const defaultRoster: RosterPlayer[] = [
   {
     id: 'player-5',
     teamId: defaultTeam.id,
-    lineupNumber: 5,
+    isStarter: true,
     name: POSITION_FULL_NAMES.outside,
     position: 'outside',
     color: CONVENTIONAL_POSITION_COLORS.outside,
@@ -101,7 +101,7 @@ export const defaultRoster: RosterPlayer[] = [
   {
     id: 'player-6',
     teamId: defaultTeam.id,
-    lineupNumber: 6,
+    isStarter: true,
     name: POSITION_FULL_NAMES['middle-blocker'],
     position: 'middle-blocker',
     color: CONVENTIONAL_POSITION_COLORS['middle-blocker'],
@@ -109,55 +109,74 @@ export const defaultRoster: RosterPlayer[] = [
   {
     id: 'player-7',
     teamId: defaultTeam.id,
-    lineupNumber: 7,
+    isStarter: true,
     name: POSITION_FULL_NAMES.libero,
     position: 'libero',
     color: CONVENTIONAL_POSITION_COLORS.libero,
   },
 ]
 
-// How many players each position needs for a valid 5-1 rotation: one
-// setter, one opposite, one libero, two outsides, two middle blockers. The
-// bench/libero swap math in rotations.ts assumes exactly this shape, so a
-// roster that falls short of these counts can't be rotated correctly.
-const POSITION_REQUIREMENTS: Record<PositionKey, number> = {
+// Exact position counts for the six on-court starters of a 5-1 lineup: one
+// setter, one opposite, two outsides, two middle blockers. Exact, not
+// minimums - six starters with three outsides and one middle isn't a small
+// 5-1, it's a different system this app doesn't model. The libero is
+// excluded because they're an optional seventh starter, never one of the
+// six in the serve order.
+const STARTER_POSITION_REQUIREMENTS: Record<Exclude<PositionKey, 'libero'>, number> = {
   setter: 1,
   opposite: 1,
   outside: 2,
   'middle-blocker': 2,
-  libero: 1,
 }
+
+export const MAX_ROSTER_SIZE = 12
 
 const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six']
 
-// Whether the roster has enough players at every position to rotate.
-export function hasValidRotationRoster(roster: RosterPlayer[]): boolean {
-  return (Object.keys(POSITION_REQUIREMENTS) as PositionKey[]).every(
-    (position) => roster.filter((rosterPlayer) => rosterPlayer.position === position).length >=
-      POSITION_REQUIREMENTS[position],
-  )
-}
-
-// Human-readable warnings for every position that's short of the players a
-// 5-1 rotation needs, e.g. "5-1 rotation requires one Setter." or "5-1
-// rotation requires two Middle Blockers."
+// Human-readable warnings for every way the starters differ from a legal
+// 5-1 lineup, e.g. "A 5-1 lineup needs two starting Middle Blockers." An
+// empty result means the starting lineup is valid and the court can render.
 export function getRosterWarnings(roster: RosterPlayer[]): string[] {
+  const starters = roster.filter((rosterPlayer) => rosterPlayer.isStarter)
   const warnings: string[] = []
 
-  for (const position of Object.keys(POSITION_REQUIREMENTS) as PositionKey[]) {
-    const required = POSITION_REQUIREMENTS[position]
-    const currentCount = roster.filter((rosterPlayer) => rosterPlayer.position === position).length
+  for (const position of Object.keys(STARTER_POSITION_REQUIREMENTS) as Exclude<PositionKey, 'libero'>[]) {
+    const required = STARTER_POSITION_REQUIREMENTS[position]
+    const starterCount = starters.filter((rosterPlayer) => rosterPlayer.position === position).length
 
-    if (currentCount >= required) {
+    if (starterCount === required) {
       continue
     }
 
     const label = POSITION_FULL_NAMES[position]
     const plural = required > 1 ? 's' : ''
-    warnings.push(`5-1 rotation requires ${NUMBER_WORDS[required]} ${label}${plural}.`)
+    warnings.push(
+      starterCount < required
+        ? `A 5-1 lineup needs ${NUMBER_WORDS[required]} starting ${label}${plural}.`
+        : `A 5-1 lineup can only have ${NUMBER_WORDS[required]} starting ${label}${plural}.`,
+    )
+  }
+
+  const liberoStarterCount = starters.filter((rosterPlayer) => rosterPlayer.position === 'libero').length
+  if (liberoStarterCount > 1) {
+    warnings.push('A lineup can only have one starting Libero.')
   }
 
   return warnings
+}
+
+// A fresh bench player for the "Add Player" button. Name, position, and
+// color are just editable defaults; crypto.randomUUID keeps the id unique
+// no matter how many players are added.
+export function createBenchPlayer(roster: RosterPlayer[]): RosterPlayer {
+  return {
+    id: crypto.randomUUID(),
+    teamId: defaultTeam.id,
+    isStarter: false,
+    name: `Player ${roster.length + 1}`,
+    position: 'outside',
+    color: COLOR_PALETTE[roster.length % COLOR_PALETTE.length],
+  }
 }
 
 // Dropdown options for the position <select>, labeled with the full name.

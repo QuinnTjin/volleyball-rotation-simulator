@@ -1,4 +1,4 @@
-import type { RosterPlayer } from './roster'
+import type { PositionKey, RosterPlayer } from './roster'
 
 export type CourtPlayer = {
   playerId: RosterPlayer['id']
@@ -8,8 +8,10 @@ export type CourtPlayer = {
 
 export type RotationLineup = {
   onCourt: CourtPlayer[]
-  benchedPlayerId: RosterPlayer['id'] | undefined
+  benchedStarterId: RosterPlayer['id'] | undefined
 }
+
+export const ROTATION_COUNT = 6
 
 // Fixed court spots P1-P6 (standard volleyball numbering).
 // P1 = back right (server), going P2 front right, P3 front middle,
@@ -23,35 +25,61 @@ const COURT_SLOTS = [
   { x: 180, y: 300 }, // P6
 ]
 
-// Back-row slots: the server plus the two back-row hitters.
+// Back-row slots: the server plus the two back-row defenders.
 const BACK_ROW_SLOT_INDICES = [0, 4, 5] // P1, P5, P6
+const P1_SLOT_INDEX = 0 // the serving slot
 
-// Rotation 1: lineupNumber n starts at court slot Pn.
-const BASE_LINEUP = [1, 2, 3, 4, 5, 6]
+// Standard 5-1 serve order for rotation 1. Same-position pairs sit three
+// slots apart, so every rotation has exactly one middle blocker in the back
+// row - the libero swap below depends on that spacing.
+const SERVE_ORDER_TEMPLATE: PositionKey[] = [
+  'setter',
+  'outside',
+  'middle-blocker',
+  'opposite',
+  'outside',
+  'middle-blocker',
+]
 
-// Each rotation shifts every player one slot in serve order
-// (P2->P1, P1->P6, P6->P5, P5->P4, P4->P3, P3->P2), which is the
-// same as rotating the lineup array left by one each time.
+// Slot the six on-court starters into the template, consuming each player
+// once so the two outsides (and the two middles) land three slots apart.
+function buildServeOrder(courtStarters: RosterPlayer[]): RosterPlayer[] {
+  const unassignedStarters = [...courtStarters]
+
+  return SERVE_ORDER_TEMPLATE.map((templatePosition) => {
+    const matchIndex = unassignedStarters.findIndex((starter) => starter.position === templatePosition)
+    return unassignedStarters.splice(matchIndex, 1)[0]
+  })
+}
+
+// Builds the six rotation snapshots for a valid 5-1 starting lineup -
+// callers must gate on getRosterWarnings(roster) being empty first. Each
+// rotation shifts every player one slot in serve order (P2->P1, P1->P6,
+// P6->P5, P5->P4, P4->P3, P3->P2), which is the same as rotating the
+// serve-order array left by one each time.
+//
+// With six starters (no libero) every rotation is just that shift. With a
+// seventh starter (the libero), the libero swaps in for the back-row middle
+// blocker - except when that middle is at P1, because the libero can't
+// serve (FIVB rules): there the middle stays in to serve and the libero is
+// the starter resting on the bench for that rotation.
 export function buildRotations(roster: RosterPlayer[]): RotationLineup[] {
-  const playerByLineupNumber = new Map(roster.map((rosterPlayer) => [rosterPlayer.lineupNumber, rosterPlayer]))
-  const middleBlockerLineupNumbers = roster
-    .filter((rosterPlayer) => rosterPlayer.position === 'middle-blocker')
-    .map((rosterPlayer) => rosterPlayer.lineupNumber)
-  const libero = roster.find((rosterPlayer) => rosterPlayer.position === 'libero')
+  const starters = roster.filter((rosterPlayer) => rosterPlayer.isStarter)
+  const libero = starters.find((rosterPlayer) => rosterPlayer.position === 'libero')
+  const serveOrder = buildServeOrder(starters.filter((rosterPlayer) => rosterPlayer.position !== 'libero'))
 
-  return Array.from({ length: 6 }, (_, rotationOffset) => {
-    const lineup = [...BASE_LINEUP.slice(rotationOffset), ...BASE_LINEUP.slice(0, rotationOffset)]
+  return Array.from({ length: ROTATION_COUNT }, (_, rotationOffset) => {
+    const lineup = [...serveOrder.slice(rotationOffset), ...serveOrder.slice(0, rotationOffset)]
 
-    // The two middle blockers are always 3 slots apart, so exactly one of
-    // them is in the back row each rotation - that's the one the libero
-    // swaps in for.
-    const benchedSlotIndex = BACK_ROW_SLOT_INDICES.find((slotIndex) =>
-      middleBlockerLineupNumbers.includes(lineup[slotIndex]),
+    const backRowMiddleSlotIndex = BACK_ROW_SLOT_INDICES.find(
+      (slotIndex) => lineup[slotIndex].position === 'middle-blocker',
     )
 
-    const onCourt = lineup.map((lineupNumber, slotIndex) => {
-      const startingPlayer = playerByLineupNumber.get(lineupNumber)!
-      const onCourtPlayer = slotIndex === benchedSlotIndex && libero !== undefined ? libero : startingPlayer
+    const liberoSwapSlotIndex =
+      libero !== undefined && backRowMiddleSlotIndex !== P1_SLOT_INDEX ? backRowMiddleSlotIndex : undefined
+
+    const onCourt = lineup.map((startingPlayer, slotIndex) => {
+      const onCourtPlayer = slotIndex === liberoSwapSlotIndex && libero !== undefined ? libero : startingPlayer
 
       return {
         playerId: onCourtPlayer.id,
@@ -60,9 +88,14 @@ export function buildRotations(roster: RosterPlayer[]): RotationLineup[] {
       }
     })
 
-    const benchedPlayerId =
-      benchedSlotIndex !== undefined ? playerByLineupNumber.get(lineup[benchedSlotIndex])?.id : undefined
+    // Without a libero all six starters are on court, so nobody is benched.
+    const benchedStarterId =
+      libero === undefined
+        ? undefined
+        : liberoSwapSlotIndex !== undefined
+          ? lineup[liberoSwapSlotIndex].id
+          : libero.id
 
-    return { onCourt, benchedPlayerId }
+    return { onCourt, benchedStarterId }
   })
 }

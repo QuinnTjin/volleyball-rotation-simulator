@@ -1,17 +1,18 @@
 import { useState } from 'react'
 import clsx from 'clsx'
-import { COLOR_PALETTE, getPositionLabel, POSITION_OPTIONS } from '../roster'
+import { COLOR_PALETTE, getPositionLabel, MAX_ROSTER_SIZE, POSITION_OPTIONS } from '../roster'
 import type { PositionKey, RosterPlayer } from '../roster'
 
 type PlayersPanelProps = {
   roster: RosterPlayer[]
   onUpdatePlayer: (
     playerId: RosterPlayer['id'],
-    changes: Partial<Pick<RosterPlayer, 'name' | 'position' | 'color'>>,
+    changes: Partial<Pick<RosterPlayer, 'name' | 'position' | 'color' | 'isStarter'>>,
   ) => void
+  onAddPlayer: () => void
 }
 
-function PlayersPanel({ roster, onUpdatePlayer }: PlayersPanelProps) {
+function PlayersPanel({ roster, onUpdatePlayer, onAddPlayer }: PlayersPanelProps) {
   const [openPlayerId, setOpenPlayerId] = useState<RosterPlayer['id'] | null>(null)
 
   function togglePlayer(playerId: RosterPlayer['id']) {
@@ -38,11 +39,25 @@ function PlayersPanel({ roster, onUpdatePlayer }: PlayersPanelProps) {
                 style={{ backgroundColor: player.color }}
               />
               <span className="flex-1">{player.name}</span>
+              {player.isStarter && (
+                <span className="text-xs text-[#f99d1b]" title="Starter" aria-label="Starter">
+                  ★
+                </span>
+              )}
               <span className="text-xs text-text">{getPositionLabel(player, roster)}</span>
             </button>
 
             {isOpen && (
               <div className="px-3 pt-2 pb-3 border-t border-border">
+                <label className="flex items-center gap-2 text-[13px] mb-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={player.isStarter}
+                    onChange={(event) => onUpdatePlayer(player.id, { isStarter: event.target.checked })}
+                  />
+                  Starter
+                </label>
+
                 <label className="flex flex-col gap-1 text-[13px] mb-2">
                   Name
                   <input
@@ -94,6 +109,16 @@ function PlayersPanel({ roster, onUpdatePlayer }: PlayersPanelProps) {
           </div>
         )
       })}
+
+      <button
+        type="button"
+        className="w-full px-3 py-2 border border-border rounded-md bg-transparent cursor-pointer text-left font-inherit text-inherit hover:bg-code-bg focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        disabled={roster.length >= MAX_ROSTER_SIZE}
+        title={roster.length >= MAX_ROSTER_SIZE ? `Rosters are capped at ${MAX_ROSTER_SIZE} players.` : undefined}
+        onClick={onAddPlayer}
+      >
+        + Add Player
+      </button>
     </div>
   )
 }
