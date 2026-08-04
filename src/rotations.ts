@@ -13,16 +13,18 @@ export type RotationLineup = {
 
 export const ROTATION_COUNT = 6
 
-// Fixed court spots P1-P6 (standard volleyball numbering).
-// P1 = back right (server), going P2 front right, P3 front middle,
-// P4 front left, P5 back left, P6 back middle.
+// Fixed court spots P1-P6 (standard volleyball numbering), in the mockup's
+// 400x400 court space: the net runs along the top (y=14), so the front row
+// (P2/P3/P4) sits at y=76 near the net and the back row (P1/P5/P6) at y=300.
+// P1 = back right (server), P2 front right, P3 front middle, P4 front left,
+// P5 back left, P6 back middle. These match the "Base Zone" formation.
 const COURT_SLOTS = [
-  { x: 300, y: 300 }, // P1
-  { x: 300, y: 60 }, // P2
-  { x: 180, y: 60 }, // P3
-  { x: 60, y: 60 }, // P4
-  { x: 60, y: 300 }, // P5
-  { x: 180, y: 300 }, // P6
+  { x: 324, y: 300 }, // P1
+  { x: 324, y: 76 }, // P2
+  { x: 200, y: 76 }, // P3
+  { x: 76, y: 76 }, // P4
+  { x: 76, y: 300 }, // P5
+  { x: 200, y: 300 }, // P6
 ]
 
 // Back-row slots: the server plus the two back-row defenders.
