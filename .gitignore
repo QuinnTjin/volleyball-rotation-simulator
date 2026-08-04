@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Saved roster written by the Express API (server/index.ts)
+server/data/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

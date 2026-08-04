@@ -4,6 +4,7 @@ import Player from './Player'
 import { buildRotations, ROTATION_COUNT } from '../rotations'
 import { getPositionLabel, getRosterWarnings } from '../roster'
 import type { RosterPlayer } from '../roster'
+import '../styles/court.scss'
 
 // 9m x 9m half-court, scaled at 40px per meter
 const COURT_SIZE = 360
@@ -63,21 +64,13 @@ function Court({ roster }: CourtProps) {
       </select>
       <div className="flex items-start gap-4">
         <svg
+          className="court"
           width={COURT_SIZE}
           height={COURT_SIZE}
           viewBox={`0 0 ${COURT_SIZE} ${COURT_SIZE}`}
-          style={{ background: '#c9a15a', border: '4px solid white' }}
         >
-          <line x1={0} y1={0} x2={COURT_SIZE} y2={0} stroke="white" strokeWidth={4} />
-          <line
-            x1={0}
-            y1={ATTACK_LINE}
-            x2={COURT_SIZE}
-            y2={ATTACK_LINE}
-            stroke="white"
-            strokeWidth={2}
-            strokeDasharray="6 4"
-          />
+          <line className="net-line" x1={0} y1={0} x2={COURT_SIZE} y2={0} />
+          <line className="attack-line" x1={0} y1={ATTACK_LINE} x2={COURT_SIZE} y2={ATTACK_LINE} />
 
           {currentRotation?.onCourt.map((courtPlayer) => {
             const rosterPlayer = roster.find((player) => player.id === courtPlayer.playerId)!

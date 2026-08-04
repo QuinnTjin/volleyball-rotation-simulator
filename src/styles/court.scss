@@ -1,0 +1,55 @@
+// SCSS variables are compile-time constants: unlike the CSS custom
+// properties in index.css, they vanish during the Sass build and the
+// browser only ever sees the resolved hex values.
+$court-sand: #c9a15a;
+$court-line: #ffffff;
+$benched-ring: #f99d1b;
+$player-name-ink: #1b1b1b;
+
+.court {
+  background: $court-sand;
+  border: 4px solid $court-line;
+
+  // Nested rules compile to descendant selectors: ".court .net-line".
+  .net-line {
+    stroke: $court-line;
+    stroke-width: 4px;
+  }
+
+  .attack-line {
+    stroke: $court-line;
+    stroke-width: 2px;
+    stroke-dasharray: 6 4;
+  }
+}
+
+// Top-level on purpose: Player dots also render inside the bench <svg>,
+// which is not a descendant of .court.
+.player {
+  .dot {
+    stroke: $court-line;
+    stroke-width: 2px;
+  }
+
+  // Dashed ring marking a starter who sits out this rotation (libero swap).
+  .benched-ring {
+    fill: none;
+    stroke: $benched-ring;
+    stroke-width: 3px;
+    stroke-dasharray: 5 4;
+  }
+
+  .dot-label {
+    fill: $court-line;
+    font-size: 14px;
+    font-weight: bold;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+
+  .dot-name {
+    fill: $player-name-ink;
+    font-size: 12px;
+    text-anchor: middle;
+  }
+}
