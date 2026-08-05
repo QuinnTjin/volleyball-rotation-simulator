@@ -18,7 +18,7 @@ export const ROTATION_COUNT = 6
 // (P2/P3/P4) sits at y=76 near the net and the back row (P1/P5/P6) at y=300.
 // P1 = back right (server), P2 front right, P3 front middle, P4 front left,
 // P5 back left, P6 back middle. These match the "Base Zone" formation.
-const COURT_SLOTS = [
+export const COURT_SLOTS = [
   { x: 324, y: 300 }, // P1
   { x: 324, y: 76 }, // P2
   { x: 200, y: 76 }, // P3
@@ -27,8 +27,11 @@ const COURT_SLOTS = [
   { x: 200, y: 300 }, // P6
 ]
 
-// Back-row slots: the server plus the two back-row defenders.
-const BACK_ROW_SLOT_INDICES = [0, 4, 5] // P1, P5, P6
+// Back-row slots: the server plus the two back-row defenders. Exported so
+// phases.ts can classify a slot as front/back row without duplicating this
+// list - overlap only cares about P-slot order, but phase target positions
+// (Receive onward) key off front/back row instead.
+export const BACK_ROW_SLOT_INDICES = [0, 4, 5] // P1, P5, P6
 const P1_SLOT_INDEX = 0 // the serving slot
 
 // Standard 5-1 serve order for rotation 1. Same-position pairs sit three

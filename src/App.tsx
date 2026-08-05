@@ -8,6 +8,7 @@ import ControlsPanel from './components/ControlsPanel'
 import type { CourtView } from './components/ControlsPanel'
 import RemoveConfirmModal from './components/RemoveConfirmModal'
 import { buildRotations } from './rotations'
+import { PHASES, getPhasePosition } from './phases'
 import {
   createBenchPlayer,
   defaultRoster,
@@ -28,6 +29,7 @@ function App() {
   // UI state lifted here because the header, court, and controls panel all
   // read or change it.
   const [rotationIndex, setRotationIndex] = useState(0)
+  const [phaseIndex, setPhaseIndex] = useState(0)
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
   const [view, setView] = useState<CourtView>({ grid: true, numbers: true })
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null)
@@ -111,13 +113,16 @@ function App() {
   const isLineupInvalid = warnings.length > 0
   const currentRotation = isLineupInvalid ? undefined : buildRotations(roster)[rotationIndex]
 
+  const phaseKey = PHASES[phaseIndex].key
+
   const dots: CourtDot[] =
-    currentRotation?.onCourt.map((courtPlayer) => {
+    currentRotation?.onCourt.map((courtPlayer, slotIndex) => {
       const player = roster.find((rosterPlayer) => rosterPlayer.id === courtPlayer.playerId)!
+      const { x, y } = getPhasePosition(phaseKey, slotIndex, player.position)
       return {
         id: player.id,
-        x: courtPlayer.x,
-        y: courtPlayer.y,
+        x,
+        y,
         color: player.color,
         short: getPositionLabel(player, roster),
         name: player.name,
@@ -178,6 +183,8 @@ function App() {
         <ControlsPanel
           rotationIndex={rotationIndex}
           onSelectRotation={setRotationIndex}
+          phaseIndex={phaseIndex}
+          onSelectPhase={setPhaseIndex}
           disabled={isLineupInvalid}
           view={view}
           onToggleView={(key) => setView((current) => ({ ...current, [key]: !current[key] }))}

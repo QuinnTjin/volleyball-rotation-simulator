@@ -1,37 +1,34 @@
 import clsx from 'clsx'
 import Toggle from './Toggle'
 import { ROTATION_COUNT } from '../rotations'
+import { PHASES } from '../phases'
 
 export type CourtView = {
   grid: boolean
   numbers: boolean
 }
 
-// Receive-phase names, shown as a disabled preview. Playback (play/pause,
-// speed, stepping through phases) is deferred — these rows are inert for now.
-const PHASE_PREVIEW = [
-  'Base Zone',
-  'Start Position',
-  'Receive',
-  'Pass',
-  'Attack Transition',
-  'Set',
-  'Attack / Coverage',
-  'Defense Transition',
-  'Defense',
-]
-
 const SPEED_PRESETS = ['0.5×', '1×', '2×']
 
 type ControlsPanelProps = {
   rotationIndex: number
   onSelectRotation: (rotationIndex: number) => void
+  phaseIndex: number
+  onSelectPhase: (phaseIndex: number) => void
   disabled: boolean
   view: CourtView
   onToggleView: (key: keyof CourtView) => void
 }
 
-function ControlsPanel({ rotationIndex, onSelectRotation, disabled, view, onToggleView }: ControlsPanelProps) {
+function ControlsPanel({
+  rotationIndex,
+  onSelectRotation,
+  phaseIndex,
+  onSelectPhase,
+  disabled,
+  view,
+  onToggleView,
+}: ControlsPanelProps) {
   function step(delta: number) {
     if (disabled) {
       return
@@ -98,12 +95,29 @@ function ControlsPanel({ rotationIndex, onSelectRotation, disabled, view, onTogg
 
         <div className="h-px bg-line" />
 
-        {/* Phase list — deferred preview, non-interactive. */}
-        <div className="flex flex-col gap-0.5 text-[12.5px]" title="Phases — coming soon">
-          {PHASE_PREVIEW.map((label) => (
-            <div key={label} className="flex cursor-default items-center gap-2.5 rounded-[7px] px-2 py-1.5 text-[#c9cad1]">
-              <span className="h-[5px] w-[26px] flex-none rounded-[3px] bg-[#eeeeea]" />
-              {label}
+        {/* Phase list — clicking moves the on-court dots to that phase's
+            conventional position. Auto-play between phases is deferred. */}
+        <div className="flex flex-col gap-0.5 text-[12.5px]">
+          {PHASES.map((phase, index) => (
+            <div
+              key={phase.key}
+              onClick={() => !disabled && onSelectPhase(index)}
+              className={clsx(
+                'flex items-center gap-2.5 rounded-[7px] px-2 py-1.5',
+                disabled
+                  ? 'cursor-default text-[#c9cad1]'
+                  : index === phaseIndex
+                    ? 'cursor-pointer bg-brand text-white'
+                    : 'cursor-pointer text-ash hover:bg-chip',
+              )}
+            >
+              <span
+                className={clsx(
+                  'h-[5px] w-[26px] flex-none rounded-[3px]',
+                  !disabled && index === phaseIndex ? 'bg-white' : 'bg-[#eeeeea]',
+                )}
+              />
+              {phase.label}
             </div>
           ))}
         </div>

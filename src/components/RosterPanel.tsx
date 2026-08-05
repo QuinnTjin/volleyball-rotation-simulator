@@ -178,14 +178,15 @@ function RosterPanel({
       <div className="my-0.5 text-[11px] font-bold uppercase tracking-[0.1em] text-muted">Off court</div>
       {offCourtRows.map((row) => renderRow(row, true))}
 
-      <button
+      {/* Hiding the add player button until Team Owner functionality is added */}
+      {/* <button
         type="button"
         onClick={onAddPlayer}
         disabled={!canAddPlayer}
         className="mt-1.5 cursor-pointer rounded-lg border border-line bg-transparent px-3 py-2 text-[12.5px] font-semibold text-ash hover:bg-page disabled:cursor-not-allowed disabled:opacity-50"
       >
         + Add player
-      </button>
+      </button> */}
     </div>
   )
 }
