@@ -1,39 +1,63 @@
 import { useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
+import type { RotationSystem } from '../roster'
 
-// The four systems from the mockup. Only 5-1 is wired up today; the rest are
-// shown in the dropdown but marked unavailable ("soon") and can't be picked.
-const SYSTEM_PRESETS = [
+// The four systems from the mockup. 5-1, 4-2, and 6-2 are wired up to real
+// rotation-building logic; 6-6 (every player rotates roles instead of
+// holding a fixed position) is a different-enough model that it's still
+// shown unavailable ("soon") and can't be picked.
+const SYSTEM_PRESETS: { label: RotationSystem | '6-6'; desc: string; available: boolean }[] = [
   { label: '5-1', desc: '1 setter, 5 hitters', available: true },
-  { label: '4-2', desc: '2 setters, front-row sets', available: false },
-  { label: '6-2', desc: '2 setters, back-row sets', available: false },
+  { label: '4-2', desc: '2 setters, front-row sets', available: true },
+  { label: '6-2', desc: '2 setters, back-row sets', available: true },
   { label: '6-6', desc: 'everyone rotates roles', available: false },
 ]
 
-const SYSTEM_INFO = {
-  title: '5-1 System',
-  desc: 'One setter runs the offense through all six rotations.',
-  bullets: [
-    'Needs on court: 1 setter, 2 outside hitters, 2 middle blockers, 1 opposite',
-    'Setter sets from the back row in 3 of 6 rotations, leaving 3 front-row attackers',
-    'Consistent offense — hitters always get sets from the same player',
-    'Libero typically subs for the back-row middle blocker',
-  ],
+// Per-system blurb shown in the info popover.
+const SYSTEM_INFO: Record<RotationSystem, { desc: string; bullets: string[] }> = {
+  '5-1': {
+    desc: 'One setter runs the offense through all six rotations.',
+    bullets: [
+      'Needs on court: 1 setter, 2 outside hitters, 2 middle blockers, 1 opposite',
+      'Setter sets from the back row in 3 of 6 rotations, leaving 3 front-row attackers',
+      'Consistent offense — hitters always get sets from the same player',
+      'Libero typically subs for the back-row middle blocker',
+    ],
+  },
+  '4-2': {
+    desc: 'Two setters opposite each other; the front-row setter sets.',
+    bullets: [
+      'Needs on court: 2 setters (placed opposite each other), 2 outside hitters, 2 middle blockers',
+      'Setter is always front row — simplest system, common for beginners',
+      'Only 2 front-row attackers in every rotation',
+      'Libero typically subs for the back-row middle blocker',
+    ],
+  },
+  '6-2': {
+    desc: 'Two setters opposite each other; the back-row setter sets.',
+    bullets: [
+      'Needs on court: 2 setters (placed opposite each other), 2 outside hitters, 2 middle blockers',
+      'Setter always sets from the back row — keeps 3 front-row attackers',
+      'Setters must also hit or block when they rotate to the front row',
+      'Libero typically subs for the back-row middle blocker',
+    ],
+  },
 }
 
 type OpenMenu = 'system' | 'info' | null
 
 type AppHeaderProps = {
-  systemLabel: string
+  systemLabel: RotationSystem
+  onSelectSystem: (system: RotationSystem) => void
   warning?: string
 }
 
-function AppHeader({ systemLabel, warning }: AppHeaderProps) {
+function AppHeader({ systemLabel, onSelectSystem, warning }: AppHeaderProps) {
   const [openMenu, setOpenMenu] = useState<OpenMenu>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
   // Close whichever popover is open when a click lands outside the menu
-  // cluster (including on the Receive/Serve toggle beside it).
+  // cluster.
   useEffect(() => {
     if (openMenu === null) {
       return
@@ -54,9 +78,9 @@ function AppHeader({ systemLabel, warning }: AppHeaderProps) {
   return (
     <header className="flex items-center gap-3.5 border-b border-line bg-card px-7 py-4">
       <div className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-brand text-sm font-bold text-white">
-        R
+        V
       </div>
-      <div className="text-base font-bold tracking-[-0.2px]">Rotations</div>
+      <div className="text-base font-bold tracking-[-0.2px]">VolleyVisuals</div>
 
       <div ref={menuRef} className="flex items-center gap-3.5">
         <div className="relative">
@@ -75,6 +99,12 @@ function AppHeader({ systemLabel, warning }: AppHeaderProps) {
                 <div
                   key={preset.label}
                   title={preset.available ? undefined : 'Coming soon'}
+                  onClick={() => {
+                    if (preset.available) {
+                      onSelectSystem(preset.label as RotationSystem)
+                      setOpenMenu(null)
+                    }
+                  }}
                   className={clsx(
                     'flex flex-col gap-0.5 rounded-[7px] px-2.5 py-2',
                     preset.available ? 'cursor-pointer hover:bg-chip' : 'cursor-not-allowed opacity-45',
@@ -101,10 +131,10 @@ function AppHeader({ systemLabel, warning }: AppHeaderProps) {
           </div>
           {openMenu === 'info' && (
             <div className="absolute left-[-110px] top-9 z-[60] flex w-[280px] flex-col gap-2 rounded-[10px] border border-line bg-card p-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
-              <span className="text-[13px] font-bold">{SYSTEM_INFO.title}</span>
-              <span className="text-[12px] leading-relaxed text-ash">{SYSTEM_INFO.desc}</span>
+              <span className="text-[13px] font-bold">{systemLabel} System</span>
+              <span className="text-[12px] leading-relaxed text-ash">{SYSTEM_INFO[systemLabel].desc}</span>
               <div className="flex flex-col gap-1.5">
-                {SYSTEM_INFO.bullets.map((text) => (
+                {SYSTEM_INFO[systemLabel].bullets.map((text) => (
                   <div key={text} className="flex gap-2 text-[12px] leading-snug text-ink2">
                     <span className="flex-none text-brand">•</span>
                     <span>{text}</span>
@@ -113,18 +143,6 @@ function AppHeader({ systemLabel, warning }: AppHeaderProps) {
               </div>
             </div>
           )}
-        </div>
-      </div>
-
-      <div className="flex rounded-lg bg-chip p-[3px] text-[12.5px] font-semibold">
-        <div className="rounded-md bg-card px-3.5 py-1.5 text-ink shadow-[0_1px_2px_rgba(0,0,0,0.08)]">
-          Receive
-        </div>
-        <div
-          title="Coming soon"
-          className="cursor-not-allowed rounded-md px-3.5 py-1.5 text-muted"
-        >
-          Serve
         </div>
       </div>
 

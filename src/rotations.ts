@@ -1,4 +1,4 @@
-import type { PositionKey, RosterPlayer } from './roster'
+import type { PositionKey, RosterPlayer, RotationSystem } from './roster'
 
 export type CourtPlayer = {
   playerId: RosterPlayer['id']
@@ -34,44 +34,55 @@ export const COURT_SLOTS = [
 export const BACK_ROW_SLOT_INDICES = [0, 4, 5] // P1, P5, P6
 const P1_SLOT_INDEX = 0 // the serving slot
 
-// Standard 5-1 serve order for rotation 1. Same-position pairs sit three
-// slots apart, so every rotation has exactly one middle blocker in the back
-// row - the libero swap below depends on that spacing.
-const SERVE_ORDER_TEMPLATE: PositionKey[] = [
-  'setter',
-  'outside',
-  'middle-blocker',
-  'opposite',
-  'outside',
-  'middle-blocker',
-]
+// Serve order templates for rotation 1, one per system. Same-position pairs
+// always sit three slots apart (opposite each other in the rotation), so
+// every rotation has exactly one of each pair in the back row - the libero
+// swap below depends on that spacing. Confirmed with the volleyball SME:
+// this spacing invariant isn't 5-1-specific, it's just how a 6-slot lineup
+// with 3 position-pairs works. 4-2 and 6-2 share a template - both run two
+// setters with no dedicated Opposite, the second setter taking the slot a
+// 5-1's Opposite would occupy; they differ only in which row sets (front vs
+// back), which is a tactical fact this app doesn't need to encode here.
+const SERVE_ORDER_TEMPLATES: Record<RotationSystem, PositionKey[]> = {
+  '5-1': ['setter', 'outside', 'middle-blocker', 'opposite', 'outside', 'middle-blocker'],
+  '4-2': ['setter', 'outside', 'middle-blocker', 'setter', 'outside', 'middle-blocker'],
+  '6-2': ['setter', 'outside', 'middle-blocker', 'setter', 'outside', 'middle-blocker'],
+}
 
 // Slot the six on-court starters into the template, consuming each player
-// once so the two outsides (and the two middles) land three slots apart.
-function buildServeOrder(courtStarters: RosterPlayer[]): RosterPlayer[] {
+// once so the two outsides (and the two middles, and the two setters in
+// 4-2/6-2) land three slots apart.
+function buildServeOrder(courtStarters: RosterPlayer[], template: PositionKey[]): RosterPlayer[] {
   const unassignedStarters = [...courtStarters]
 
-  return SERVE_ORDER_TEMPLATE.map((templatePosition) => {
+  return template.map((templatePosition) => {
     const matchIndex = unassignedStarters.findIndex((starter) => starter.position === templatePosition)
     return unassignedStarters.splice(matchIndex, 1)[0]
   })
 }
 
-// Builds the six rotation snapshots for a valid 5-1 starting lineup -
-// callers must gate on getRosterWarnings(roster) being empty first. Each
-// rotation shifts every player one slot in serve order (P2->P1, P1->P6,
-// P6->P5, P5->P4, P4->P3, P3->P2), which is the same as rotating the
-// serve-order array left by one each time.
+// Builds the six rotation snapshots for a valid starting lineup in the
+// given system - callers must gate on getRosterWarnings(roster, system)
+// being empty first. Each rotation shifts every player one slot in serve
+// order (P2->P1, P1->P6, P6->P5, P5->P4, P4->P3, P3->P2), which is the same
+// as rotating the serve-order array left by one each time.
 //
 // With six starters (no libero) every rotation is just that shift. With a
 // seventh starter (the libero), the libero swaps in for the back-row middle
 // blocker - except when that middle is at P1, because the libero can't
 // serve (FIVB rules): there the middle stays in to serve and the libero is
-// the starter resting on the bench for that rotation.
-export function buildRotations(roster: RosterPlayer[]): RotationLineup[] {
+// the starter resting on the bench for that rotation. Confirmed with the
+// volleyball SME that this rule is unaffected by which system is running:
+// the back-row setter and back-row middle blocker are always different
+// players in 4-2/6-2 too (both pairs sit three slots apart), so the swap
+// can never collide with a setter's slot.
+export function buildRotations(roster: RosterPlayer[], system: RotationSystem): RotationLineup[] {
   const starters = roster.filter((rosterPlayer) => rosterPlayer.isStarter)
   const libero = starters.find((rosterPlayer) => rosterPlayer.position === 'libero')
-  const serveOrder = buildServeOrder(starters.filter((rosterPlayer) => rosterPlayer.position !== 'libero'))
+  const serveOrder = buildServeOrder(
+    starters.filter((rosterPlayer) => rosterPlayer.position !== 'libero'),
+    SERVE_ORDER_TEMPLATES[system],
+  )
 
   return Array.from({ length: ROTATION_COUNT }, (_, rotationOffset) => {
     const lineup = [...serveOrder.slice(rotationOffset), ...serveOrder.slice(0, rotationOffset)]

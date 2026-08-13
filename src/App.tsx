@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import clsx from 'clsx'
 import AppHeader from './components/AppHeader'
 import RosterPanel from './components/RosterPanel'
 import type { RosterRow } from './components/RosterPanel'
@@ -8,7 +9,7 @@ import ControlsPanel from './components/ControlsPanel'
 import type { CourtView } from './components/ControlsPanel'
 import RemoveConfirmModal from './components/RemoveConfirmModal'
 import { buildRotations } from './rotations'
-import { PHASES, getPhasePosition } from './phases'
+import { PHASES, SERVE_PHASES, getPhasePosition } from './phases'
 import {
   createBenchPlayer,
   defaultRoster,
@@ -16,12 +17,13 @@ import {
   getRosterWarnings,
   MAX_ROSTER_SIZE,
 } from './roster'
-import type { RosterPlayer } from './roster'
+import type { RosterPlayer, RotationSystem } from './roster'
 
-const SYSTEM_LABEL = '5-1'
+type Mode = 'receive' | 'serve'
 
 function App() {
   const [roster, setRoster] = useState<RosterPlayer[]>(defaultRoster)
+  const [system, setSystem] = useState<RotationSystem>('5-1')
   // Saving stays disabled until the saved roster has been fetched, so a PUT
   // can never overwrite the file on disk with the built-in default roster.
   const [isRosterLoaded, setIsRosterLoaded] = useState(false)
@@ -29,10 +31,18 @@ function App() {
   // UI state lifted here because the header, court, and controls panel all
   // read or change it.
   const [rotationIndex, setRotationIndex] = useState(0)
+  const [mode, setMode] = useState<Mode>('receive')
   const [phaseIndex, setPhaseIndex] = useState(0)
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
   const [view, setView] = useState<CourtView>({ grid: true, numbers: true })
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null)
+
+  // Receive and Serve mode have different-length phase lists (5 vs 3), so
+  // switching modes resets to phase 0 rather than risk an out-of-range index.
+  function selectMode(nextMode: Mode) {
+    setMode(nextMode)
+    setPhaseIndex(0)
+  }
 
   useEffect(() => {
     let isCancelled = false
@@ -109,11 +119,12 @@ function App() {
 
   // --- Derive the current rotation once and feed both the court and the
   // roster panel from it, so they never disagree about who's where. ---
-  const warnings = getRosterWarnings(roster)
+  const warnings = getRosterWarnings(roster, system)
   const isLineupInvalid = warnings.length > 0
-  const currentRotation = isLineupInvalid ? undefined : buildRotations(roster)[rotationIndex]
+  const currentRotation = isLineupInvalid ? undefined : buildRotations(roster, system)[rotationIndex]
 
-  const phaseKey = PHASES[phaseIndex].key
+  const phases = mode === 'receive' ? PHASES : SERVE_PHASES
+  const phaseKey = phases[phaseIndex].key
 
   const dots: CourtDot[] =
     currentRotation?.onCourt.map((courtPlayer, slotIndex) => {
@@ -155,7 +166,7 @@ function App() {
 
   return (
     <div className="min-h-screen pb-7">
-      <AppHeader systemLabel={SYSTEM_LABEL} warning={warnings[0]} />
+      <AppHeader systemLabel={system} onSelectSystem={setSystem} warning={warnings[0]} />
 
       <div className="flex items-start justify-center gap-5 px-7 pt-5">
         <RosterPanel
@@ -180,21 +191,47 @@ function App() {
           onSelectDot={toggleSelectPlayer}
         />
 
-        <ControlsPanel
-          rotationIndex={rotationIndex}
-          onSelectRotation={setRotationIndex}
-          phaseIndex={phaseIndex}
-          onSelectPhase={setPhaseIndex}
-          disabled={isLineupInvalid}
-          view={view}
-          onToggleView={(key) => setView((current) => ({ ...current, [key]: !current[key] }))}
-        />
+        <div className="flex w-60 flex-none flex-col gap-3">
+          {/* Receive/Serve mode toggle - relocated here (was in AppHeader)
+              so it sits directly above the panel whose phase list it drives. */}
+          <div className="flex w-full rounded-lg bg-chip p-[3px] text-[12.5px] font-semibold">
+            <div
+              onClick={() => selectMode('receive')}
+              className={clsx(
+                'flex-1 cursor-pointer rounded-md px-3.5 py-1.5 text-center',
+                mode === 'receive' ? 'bg-card text-ink shadow-[0_1px_2px_rgba(0,0,0,0.08)]' : 'text-muted',
+              )}
+            >
+              Receive
+            </div>
+            <div
+              onClick={() => selectMode('serve')}
+              className={clsx(
+                'flex-1 cursor-pointer rounded-md px-3.5 py-1.5 text-center',
+                mode === 'serve' ? 'bg-card text-ink shadow-[0_1px_2px_rgba(0,0,0,0.08)]' : 'text-muted',
+              )}
+            >
+              Serve
+            </div>
+          </div>
+
+          <ControlsPanel
+            rotationIndex={rotationIndex}
+            onSelectRotation={setRotationIndex}
+            phases={phases}
+            phaseIndex={phaseIndex}
+            onSelectPhase={setPhaseIndex}
+            disabled={isLineupInvalid}
+            view={view}
+            onToggleView={(key) => setView((current) => ({ ...current, [key]: !current[key] }))}
+          />
+        </div>
       </div>
 
       {playerToRemove && (
         <RemoveConfirmModal
           playerName={playerToRemove.name}
-          systemLabel={SYSTEM_LABEL}
+          systemLabel={system}
           onCancel={() => setConfirmRemoveId(null)}
           onConfirm={confirmRemovePlayer}
         />
