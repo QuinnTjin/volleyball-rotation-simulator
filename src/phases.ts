@@ -33,6 +33,14 @@ export const PHASES: Phase[] = [
 type Point = { x: number; y: number }
 type Row = 'front' | 'back'
 
+// ---- Court geometry primitives ----
+const ATTACK_LINE_Y = 138 // the 3m/10-foot line
+const LEFT_SIDELINE_X = 14
+const RIGHT_SIDELINE_X = 386
+
+// ---- Depth bands ----
+const APPROACH_START_DEPTH_Y = ATTACK_LINE_Y + 2 // 140 - just behind the line, starting an attack approach
+
 // A role's target position, split by which row that role is playing this
 // rotation. Setter is included even though her release point barely moves
 // between rows (both values are equal in every phase but Defense, where a
