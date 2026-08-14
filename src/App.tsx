@@ -10,6 +10,7 @@ import type { CourtView } from './components/ControlsPanel'
 import RemoveConfirmModal from './components/RemoveConfirmModal'
 import { buildRotations } from './rotations'
 import { PHASES, SERVE_PHASES, getPhasePosition } from './phases'
+import type { RotationIndex, SlotIndex } from './formations/types'
 import {
   createBenchPlayer,
   defaultRoster,
@@ -124,12 +125,33 @@ function App() {
   const currentRotation = isLineupInvalid ? undefined : buildRotations(roster, system)[rotationIndex]
 
   const phases = mode === 'receive' ? PHASES : SERVE_PHASES
-  const phaseKey = phases[phaseIndex].key
+  // rotationIndex/slotIndex are plain numbers at runtime (state + array
+  // index), but both are always 0-5 by construction (ROTATION_COUNT and
+  // onCourt are both fixed at 6) - these casts just tell the type system
+  // what's already true, so getPhasePosition's context object stays fully
+  // typed instead of widening to `number`.
+  const currentRotationIndex = rotationIndex as RotationIndex
 
   const dots: CourtDot[] =
     currentRotation?.onCourt.map((courtPlayer, slotIndex) => {
       const player = roster.find((rosterPlayer) => rosterPlayer.id === courtPlayer.playerId)!
-      const { x, y } = getPhasePosition(phaseKey, slotIndex, player.position)
+      const currentSlotIndex = slotIndex as SlotIndex
+      const { x, y } =
+        mode === 'receive'
+          ? getPhasePosition({
+              system,
+              mode: 'receive',
+              rotationIndex: currentRotationIndex,
+              phaseKey: PHASES[phaseIndex].key,
+              slotIndex: currentSlotIndex,
+            })
+          : getPhasePosition({
+              system,
+              mode: 'serve',
+              rotationIndex: currentRotationIndex,
+              phaseKey: SERVE_PHASES[phaseIndex].key,
+              slotIndex: currentSlotIndex,
+            })
       return {
         id: player.id,
         x,
