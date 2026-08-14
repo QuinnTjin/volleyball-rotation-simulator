@@ -32,7 +32,7 @@ export const COURT_SLOTS = [
 // list - overlap only cares about P-slot order, but phase target positions
 // (Receive onward) key off front/back row instead.
 export const BACK_ROW_SLOT_INDICES = [0, 4, 5] // P1, P5, P6
-const P1_SLOT_INDEX = 0 // the serving slot
+const SERVING_SLOT_INDEX = 0 // P1
 
 // Serve order templates for rotation 1, one per system. Same-position pairs
 // always sit three slots apart (opposite each other in the rotation), so
@@ -68,14 +68,19 @@ function buildServeOrder(courtStarters: RosterPlayer[], template: PositionKey[])
 // as rotating the serve-order array left by one each time.
 //
 // With six starters (no libero) every rotation is just that shift. With a
-// seventh starter (the libero), the libero swaps in for the back-row middle
-// blocker - except when that middle is at P1, because the libero can't
-// serve (FIVB rules): there the middle stays in to serve and the libero is
-// the starter resting on the bench for that rotation. Confirmed with the
-// volleyball SME that this rule is unaffected by which system is running:
-// the back-row setter and back-row middle blocker are always different
-// players in 4-2/6-2 too (both pairs sit three slots apart), so the swap
-// can never collide with a setter's slot.
+// seventh starter (the libero), she swaps in for the back-row middle
+// blocker in every rotation *except* one: confirmed with the volleyball SME,
+// US rules (NFHS/USAV/NCAA) let the libero serve, but only in one
+// designated player's spot in the serve order for the whole set - she can't
+// serve on behalf of both middle blockers. Since the two middles sit three
+// slots apart, each rotates through P1 once per six-rotation cycle
+// (independently of each other), so naively swapping the libero in for
+// "whichever middle is back-row" would have her serve for both of them.
+// The fix: designate whichever middle reaches P1 first (the lower rotation
+// index) as her serve pairing. When the *other* middle rotates to P1, that
+// middle serves for herself and the libero sits that single rotation out -
+// P1 is the serving zone, so there's no on-court spot to swap her into
+// without serving.
 export function buildRotations(roster: RosterPlayer[], system: RotationSystem): RotationLineup[] {
   const starters = roster.filter((rosterPlayer) => rosterPlayer.isStarter)
   const libero = starters.find((rosterPlayer) => rosterPlayer.position === 'libero')
@@ -84,6 +89,16 @@ export function buildRotations(roster: RosterPlayer[], system: RotationSystem): 
     SERVE_ORDER_TEMPLATES[system],
   )
 
+  // The rotation offsets at which a middle blocker's turn lands her on P1 are
+  // exactly the serve-order indices of the two middles (lineup[0] ===
+  // serveOrder[rotationOffset % ROTATION_COUNT]) - the earlier one is the
+  // libero's designated serve pairing.
+  const middleBlockerServeRotationOffsets = serveOrder
+    .map((player, serveOrderIndex) => ({ player, serveOrderIndex }))
+    .filter(({ player }) => player.position === 'middle-blocker')
+    .map(({ serveOrderIndex }) => serveOrderIndex)
+  const liberoServeRotationOffset = Math.min(...middleBlockerServeRotationOffsets)
+
   return Array.from({ length: ROTATION_COUNT }, (_, rotationOffset) => {
     const lineup = [...serveOrder.slice(rotationOffset), ...serveOrder.slice(0, rotationOffset)]
 
@@ -91,8 +106,9 @@ export function buildRotations(roster: RosterPlayer[], system: RotationSystem): 
       (slotIndex) => lineup[slotIndex].position === 'middle-blocker',
     )
 
-    const liberoSwapSlotIndex =
-      libero !== undefined && backRowMiddleSlotIndex !== P1_SLOT_INDEX ? backRowMiddleSlotIndex : undefined
+    const isUndesignatedServeTurn =
+      backRowMiddleSlotIndex === SERVING_SLOT_INDEX && rotationOffset !== liberoServeRotationOffset
+    const liberoSwapSlotIndex = libero !== undefined && !isUndesignatedServeTurn ? backRowMiddleSlotIndex : undefined
 
     const onCourt = lineup.map((startingPlayer, slotIndex) => {
       const onCourtPlayer = slotIndex === liberoSwapSlotIndex && libero !== undefined ? libero : startingPlayer
@@ -105,12 +121,11 @@ export function buildRotations(roster: RosterPlayer[], system: RotationSystem): 
     })
 
     // Without a libero all six starters are on court, so nobody is benched.
+    // With a libero, she's benched on the one rotation the other middle
+    // blocker serves for herself; every other rotation the swapped-out
+    // middle blocker is benched instead.
     const benchedStarterId =
-      libero === undefined
-        ? undefined
-        : liberoSwapSlotIndex !== undefined
-          ? lineup[liberoSwapSlotIndex].id
-          : libero.id
+      libero === undefined ? undefined : liberoSwapSlotIndex !== undefined ? lineup[liberoSwapSlotIndex].id : libero.id
 
     return { onCourt, benchedStarterId }
   })
