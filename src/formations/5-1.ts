@@ -29,27 +29,27 @@ export const FORMATIONS_5_1: FormationTable = {
       ],
       'set': [
         { x: 1.69, y: 0.63 }, // P1 setter
-        { x: -3.39, y: 0.75 }, // P2 outside
-        { x: 0, y: 0.75 }, // P3 middle-blocker
-        { x: 3.39, y: 0.75 }, // P4 opposite
-        { x: -1.94, y: 5.23 }, // P5 outside
-        { x: 0, y: 5.23 }, // P6 libero
+        { x: -5.2, y: 3 }, // P2 outside
+        { x: 0, y: 3 }, // P3 middle-blocker
+        { x: 4.4, y: 3 }, // P4 opposite
+        { x: 0, y: 5.23 }, // P5 outside
+        { x: -2.5, y: 5.23 }, // P6 libero
       ],
       'attack': [
-        { x: 1.21, y: 1.96 }, // P1 setter
+        { x: 1.69, y: 0.63 }, // P1 setter
         { x: -3.39, y: 0.63 }, // P2 outside
         { x: 0, y: 0.63 }, // P3 middle-blocker
         { x: 3.39, y: 0.63 }, // P4 opposite
-        { x: -1.94, y: 3.77 }, // P5 outside
-        { x: 0, y: 4.26 }, // P6 libero
+        { x: 0, y: 3 }, // P5 outside
+        { x: -2.5, y: 4.26 }, // P6 libero
       ],
       'defensive-position': [
-        { x: 0.73, y: 7.65 }, // P1 setter
-        { x: -3.02, y: 0.51 }, // P2 outside
+        { x: 2.5, y: 5.23 }, // P1 setter
+        { x: -1.5, y: 0.51 }, // P2 outside
         { x: 0, y: 0.51 }, // P3 middle-blocker
-        { x: 3.02, y: 0.51 }, // P4 opposite
-        { x: -2.9, y: 7.4 }, // P5 outside
-        { x: 0, y: 5.23 }, // P6 libero
+        { x: 1.5, y: 0.51 }, // P4 opposite
+        { x: 0, y: 7.4 }, // P5 outside
+        { x: -2.5, y: 5.23 }, // P6 libero
       ],
     },
     // Rotation 2: P1 outside, P2 middle-blocker, P3 opposite, P4 outside, P5 libero, P6 setter
@@ -280,20 +280,20 @@ export const FORMATIONS_5_1: FormationTable = {
         { x: 0, y: 6.92 }, // P6 libero
       ],
       'serve': [
-        { x: 3.34, y: 9.58 }, // P1 setter
-        { x: 3, y: 1.89 }, // P2 outside
-        { x: 0, y: 1.89 }, // P3 middle-blocker
-        { x: -3, y: 1.89 }, // P4 opposite
-        { x: -2.76, y: 6.15 }, // P5 outside
-        { x: 0, y: 6.44 }, // P6 libero
+        { x: 2, y: 9.58 }, // P1 setter
+        { x: 0.70, y: 1.89 }, // P2 outside
+        { x: 0, y: 0.58 }, // P3 middle-blocker
+        { x: -0.70, y: 1.5 }, // P4 opposite
+        { x: -1, y: 6.44 }, // P5 outside
+        { x: 0, y: 5.15 }, // P6 libero
       ],
       'defensive-position': [
-        { x: 0.73, y: 7.65 }, // P1 setter
-        { x: -3.02, y: 0.51 }, // P2 outside
+        { x: 2.5, y: 5.23 }, // P1 setter
+        { x: -1.5, y: 0.51 }, // P2 outside
         { x: 0, y: 0.51 }, // P3 middle-blocker
-        { x: 3.02, y: 0.51 }, // P4 opposite
-        { x: -2.9, y: 7.4 }, // P5 outside
-        { x: 0, y: 5.23 }, // P6 libero
+        { x: 1.5, y: 0.51 }, // P4 opposite
+        { x: 0, y: 7.4 }, // P5 outside
+        { x: -2.5, y: 5.23 }, // P6 libero
       ],
     },
     // Rotation 2: P1 outside, P2 middle-blocker, P3 opposite, P4 outside, P5 libero, P6 setter
