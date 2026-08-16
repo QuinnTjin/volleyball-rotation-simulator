@@ -122,7 +122,7 @@ function App() {
   // roster panel from it, so they never disagree about who's where. ---
   const warnings = getRosterWarnings(roster, system)
   const isLineupInvalid = warnings.length > 0
-  const currentRotation = isLineupInvalid ? undefined : buildRotations(roster, system)[rotationIndex]
+  const currentRotation = isLineupInvalid ? undefined : buildRotations(roster, system, mode)[rotationIndex]
 
   const phases = mode === 'receive' ? PHASES : SERVE_PHASES
   // rotationIndex/slotIndex are plain numbers at runtime (state + array

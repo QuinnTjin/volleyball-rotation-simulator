@@ -1,4 +1,5 @@
 import type { PositionKey, RosterPlayer, RotationSystem } from './roster'
+import type { Mode } from './formations/types'
 
 export type CourtPlayer = {
   playerId: RosterPlayer['id']
@@ -81,7 +82,15 @@ function buildServeOrder(courtStarters: RosterPlayer[], template: PositionKey[])
 // middle serves for herself and the libero sits that single rotation out -
 // P1 is the serving zone, so there's no on-court spot to swap her into
 // without serving.
-export function buildRotations(roster: RosterPlayer[], system: RotationSystem): RotationLineup[] {
+//
+// That sit-out is a *serve-mode-only* constraint. It exists solely because
+// P1 serves, so it only binds when our team is serving. In receive mode our
+// P1 player isn't serving (the opponent is), so the libero can - and does -
+// swap in for the back-row middle in every rotation, including the one where
+// that middle would otherwise be serving. Hence `mode`: the same rotation
+// yields a different on-court lineup depending on whether we're serving or
+// receiving, and only for that one otherwise-benched rotation.
+export function buildRotations(roster: RosterPlayer[], system: RotationSystem, mode: Mode): RotationLineup[] {
   const starters = roster.filter((rosterPlayer) => rosterPlayer.isStarter)
   const libero = starters.find((rosterPlayer) => rosterPlayer.position === 'libero')
   const serveOrder = buildServeOrder(
@@ -107,7 +116,9 @@ export function buildRotations(roster: RosterPlayer[], system: RotationSystem): 
     )
 
     const isUndesignatedServeTurn =
-      backRowMiddleSlotIndex === SERVING_SLOT_INDEX && rotationOffset !== liberoServeRotationOffset
+      mode === 'serve' &&
+      backRowMiddleSlotIndex === SERVING_SLOT_INDEX &&
+      rotationOffset !== liberoServeRotationOffset
     const liberoSwapSlotIndex = libero !== undefined && !isUndesignatedServeTurn ? backRowMiddleSlotIndex : undefined
 
     const onCourt = lineup.map((startingPlayer, slotIndex) => {
