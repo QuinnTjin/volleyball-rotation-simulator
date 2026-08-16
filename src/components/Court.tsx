@@ -55,13 +55,19 @@ const ZONE_LABELS = [
 // being clipped - see CANVAS_WIDTH_PX/CANVAS_HEIGHT_PX.
 function Court({ dots, rotationNumber, gridVisible, numbersVisible, invalid, warning, onSelectDot }: CourtProps) {
   return (
-    <div className="flex flex-col items-center gap-2.5 rounded-[14px] border border-line bg-card p-5">
-      <div className="relative" style={{ width: CANVAS_WIDTH_PX, height: CANVAS_HEIGHT_PX }}>
+    <div className="mx-auto flex w-full max-w-[540px] flex-col items-center gap-2.5 rounded-[14px] border border-line bg-card p-5">
+      {/* Court canvas: fluid width, locked to the SVG's own 500x580 portrait
+          ratio so the court can never distort. Capped at 500px so at >=1024px
+          it renders at exactly the old fixed size (pixel-identical desktop).
+          Below lg the width is additionally capped by the vertical space a
+          phone has - (100dvh - 130px) worth of height, back-converted through
+          the aspect ratio - so a court in landscape stays fully on screen
+          without scrolling. The 130px reserves room for the header and the
+          card's own padding + caption. */}
+      <div className="relative aspect-[500/580] w-full max-w-[min(500px,calc((100dvh_-_130px)*500/580))] lg:max-w-[500px]">
         <svg
-          width={CANVAS_WIDTH_PX}
-          height={CANVAS_HEIGHT_PX}
           viewBox={`0 0 ${CANVAS_WIDTH_PX} ${CANVAS_HEIGHT_PX}`}
-          className="absolute left-0 top-0"
+          className="absolute inset-0 h-full w-full"
         >
           {/* Free zone: the whole canvas behind everything else. */}
           <rect x={0} y={0} width={CANVAS_WIDTH_PX} height={CANVAS_HEIGHT_PX} rx={8} fill="#f4f5fb" />
@@ -159,9 +165,9 @@ function Court({ dots, rotationNumber, gridVisible, numbersVisible, invalid, war
         ))}
 
         {invalid && (
-          <div className="absolute inset-[14px] z-30 flex flex-col items-center justify-center gap-2 px-[34px] text-center">
-            <span className="text-[14px] font-bold text-brand">Court cleared</span>
-            <span className="text-[12.5px] leading-relaxed text-ash">{warning}</span>
+          <div className="absolute inset-[3%] z-30 flex flex-col items-center justify-center gap-2 px-[7%] text-center">
+            <span className="text-[13px] font-bold text-brand sm:text-[14px]">Court cleared</span>
+            <span className="text-[11px] leading-relaxed text-ash sm:text-[12.5px]">{warning}</span>
           </div>
         )}
       </div>
