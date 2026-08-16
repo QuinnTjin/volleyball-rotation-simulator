@@ -148,8 +148,6 @@ function RosterPanel({
   onSelectPlayer,
   onUpdatePlayer,
   onRequestRemove,
-  onAddPlayer,
-  canAddPlayer,
 }: RosterPanelProps) {
   function renderRow(row: RosterRow, offCourt: boolean) {
     return (

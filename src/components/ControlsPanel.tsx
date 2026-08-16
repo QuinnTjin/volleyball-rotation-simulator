@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import Toggle from './Toggle'
 import { ROTATION_COUNT } from '../rotations'
-import { PHASES } from '../phases'
+import type { Phase } from '../phases'
 
 export type CourtView = {
   grid: boolean
@@ -13,6 +13,7 @@ const SPEED_PRESETS = ['0.5×', '1×', '2×']
 type ControlsPanelProps = {
   rotationIndex: number
   onSelectRotation: (rotationIndex: number) => void
+  phases: Phase[]
   phaseIndex: number
   onSelectPhase: (phaseIndex: number) => void
   disabled: boolean
@@ -23,6 +24,7 @@ type ControlsPanelProps = {
 function ControlsPanel({
   rotationIndex,
   onSelectRotation,
+  phases,
   phaseIndex,
   onSelectPhase,
   disabled,
@@ -98,7 +100,7 @@ function ControlsPanel({
         {/* Phase list — clicking moves the on-court dots to that phase's
             conventional position. Auto-play between phases is deferred. */}
         <div className="flex flex-col gap-0.5 text-[12.5px]">
-          {PHASES.map((phase, index) => (
+          {phases.map((phase, index) => (
             <div
               key={phase.key}
               onClick={() => !disabled && onSelectPhase(index)}

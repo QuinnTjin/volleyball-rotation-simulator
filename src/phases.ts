@@ -1,128 +1,70 @@
-import type { PositionKey } from './roster'
-import { BACK_ROW_SLOT_INDICES, COURT_SLOTS } from './rotations'
+import type { RotationSystem } from './roster'
+import { COURT_SLOTS } from './rotations'
+import { legacyMockupPixelsToMeters, metersToPixels } from './court-geometry'
+import type { PixelPoint } from './court-geometry'
+import { FORMATIONS_5_1 } from './formations/5-1'
+import type { FormationTable, PositionContext, ReceivePhaseKey, ServePhaseKey } from './formations/types'
 
-export type PhaseKey =
-  | 'base-zone'
-  | 'start-position'
-  | 'receive'
-  | 'pass'
-  | 'attack-transition'
-  | 'set'
-  | 'attack-coverage'
-  | 'defense-transition'
-  | 'defense'
+// Display-only shape for the phase sidebar (ControlsPanel) - it only ever
+// reads `key` (as a React key + to report an index back) and `label`, so it
+// doesn't need to know which mode's phase-key type it's holding.
+export type Phase = { key: string; label: string }
 
-export type Phase = { key: PhaseKey; label: string }
-
-// Order matches the mockup's sidebar list. Base Zone and Start Position
-// depict the legal pre-serve alignment (an overlap/P-slot constraint);
-// every phase after that depicts role-driven movement once the ball is
-// live and overlap no longer applies - see ROLE_TARGETS below.
-export const PHASES: Phase[] = [
-  { key: 'base-zone', label: 'Base Zone' },
-  { key: 'start-position', label: 'Start Position' },
-  { key: 'receive', label: 'Receive' },
+// Receive-mode phase list, collapsed from the mockup's original 9-entry
+// sidebar down to 5 for the MVP. Base depicts the legal pre-serve alignment
+// (an overlap/P-slot constraint); every phase after that depicts
+// role-driven movement once the ball is live and overlap no longer applies.
+export const PHASES: { key: ReceivePhaseKey; label: string }[] = [
+  { key: 'base', label: 'Base' },
   { key: 'pass', label: 'Pass' },
-  { key: 'attack-transition', label: 'Attack Transition' },
   { key: 'set', label: 'Set' },
-  { key: 'attack-coverage', label: 'Attack / Coverage' },
-  { key: 'defense-transition', label: 'Defense Transition' },
-  { key: 'defense', label: 'Defense' },
+  { key: 'attack', label: 'Attack' },
+  { key: 'defensive-position', label: 'Defensive Position' },
 ]
 
-type Point = { x: number; y: number }
-type Row = 'front' | 'back'
+// Serve-mode phase list: the serving team's Base alignment, the moment of
+// serve contact, then their transition into defensive readiness. Reuses
+// Base and Defensive Position from the receive-mode list above - both are
+// legitimately mode-agnostic (Base is the same pre-serve legal alignment
+// for either team; Defensive Position is a role+row dig-ready stance that
+// doesn't depend on how the team ended up needing to defend).
+export const SERVE_PHASES: { key: ServePhaseKey; label: string }[] = [
+  { key: 'base', label: 'Base' },
+  { key: 'serve', label: 'Serve' },
+  { key: 'defensive-position', label: 'Defensive Position' },
+]
 
-// ---- Court geometry primitives ----
-const ATTACK_LINE_Y = 138 // the 3m/10-foot line
-const LEFT_SIDELINE_X = 14
-const RIGHT_SIDELINE_X = 386
-
-// ---- Depth bands ----
-const APPROACH_START_DEPTH_Y = ATTACK_LINE_Y + 2 // 140 - just behind the line, starting an attack approach
-
-// A role's target position, split by which row that role is playing this
-// rotation. Setter is included even though her release point barely moves
-// between rows (both values are equal in every phase but Defense, where a
-// front-row setter blocks and a back-row setter digs) - splitting it keeps
-// the lookup uniform instead of special-casing one role.
-type RoleTargets = {
-  setter: Record<Row, Point>
-  outside: Record<Row, Point>
-  'middle-blocker': Record<Row, Point>
-  opposite: Record<Row, Point>
-  libero: Point
+// Only 5-1 has real formation data (see src/formations/) - 4-2 and 6-2
+// reuse it for now. This isn't a placeholder: the position logic this table
+// was generated from never varied by system either, so reusing 5-1's table
+// reproduces exactly what those systems already rendered before this
+// refactor. Dropping in a real src/formations/4-2.ts later is just adding a
+// case here, no restructuring - see the Deliverable 7 discussion.
+const FORMATION_TABLES: Record<RotationSystem, FormationTable> = {
+  '5-1': FORMATIONS_5_1,
+  '4-2': FORMATIONS_5_1,
+  '6-2': FORMATIONS_5_1,
 }
 
-const rowInvariant = (point: Point): Record<Row, Point> => ({ front: point, back: point })
-
-// Role + row target positions for every phase after the serve is
-// contacted, per the volleyball SME: overlap no longer applies mid-rally,
-// so these key off what a role actually does (pass/attack/block/dig), not
-// off which of the 6 zone slots that player happened to rotate into.
-const ROLE_TARGETS: Record<Exclude<PhaseKey, 'base-zone' | 'start-position'>, RoleTargets> = {
-  receive: {
-    setter: rowInvariant({ x: 350, y: 275 }),
-    outside: { front: { x: 310, y: 245 }, back: { x: 90, y: 245 } },
-    'middle-blocker': { front: { x: 200, y: 75 }, back: { x: 200, y: 345 } },
-    opposite: { front: { x: 50, y: 115 }, back: { x: 345, y: 300 } },
-    libero: { x: 200, y: 265 },
-  },
-  pass: {
-    setter: rowInvariant({ x: 272, y: 50 }),
-    outside: { front: { x: 90, y: 245 }, back: { x: 310, y: 245 } },
-    'middle-blocker': { front: { x: 200, y: 105 }, back: { x: 200, y: 345 } },
-    opposite: { front: { x: 350, y: 105 }, back: { x: 350, y: 280 } },
-    libero: { x: 200, y: 265 },
-  },
-  'attack-transition': {
-    setter: rowInvariant({ x: 270, y: 45 }),
-    outside: { front: { x: 15, y: 160 }, back: { x: 310, y: 250 } },
-    'middle-blocker': { front: { x: 215, y: 90 }, back: { x: 200, y: 260 } },
-    opposite: { front: { x: 350, y: 90 }, back: { x: 300, y: 260 } },
-    libero: { x: 130, y: 220 },
-  },
-  set: {
-    setter: rowInvariant({ x: 270, y: 40 }),
-    outside: { front: { x: 60, y: 45 }, back: { x: 120, y: 230 } },
-    'middle-blocker': { front: { x: 200, y: 45 }, back: { x: 200, y: 230 } },
-    opposite: { front: { x: 340, y: 45 }, back: { x: 310, y: 230 } },
-    libero: { x: 200, y: 230 },
-  },
-  'attack-coverage': {
-    setter: rowInvariant({ x: 250, y: 95 }),
-    outside: { front: { x: 60, y: 40 }, back: { x: 120, y: 170 } },
-    'middle-blocker': { front: { x: 200, y: 40 }, back: { x: 200, y: 190 } },
-    opposite: { front: { x: 340, y: 40 }, back: { x: 280, y: 170 } },
-    libero: { x: 200, y: 190 },
-  },
-  'defense-transition': {
-    setter: rowInvariant({ x: 260, y: 60 }),
-    outside: { front: { x: 70, y: 60 }, back: { x: 90, y: 300 } },
-    'middle-blocker': { front: { x: 200, y: 60 }, back: { x: 200, y: 320 } },
-    opposite: { front: { x: 330, y: 60 }, back: { x: 310, y: 300 } },
-    libero: { x: 200, y: 320 },
-  },
-  defense: {
-    setter: { front: { x: 270, y: 40 }, back: { x: 230, y: 330 } },
-    outside: { front: { x: 75, y: 35 }, back: { x: 80, y: 320 } },
-    'middle-blocker': { front: { x: 200, y: 35 }, back: { x: 200, y: 230 } },
-    opposite: { front: { x: 325, y: 35 }, back: { x: 320, y: 320 } },
-    libero: { x: 200, y: 230 },
-  },
-}
-
-// Looks up where a given on-court player should render for the selected
-// phase. Base Zone/Start Position are zone-slot keyed (COURT_SLOTS, same
-// as rotations.ts); every later phase is role+row keyed (ROLE_TARGETS)
-// since overlap no longer constrains position once the ball is live.
-export function getPhasePosition(phaseKey: PhaseKey, slotIndex: number, role: PositionKey): Point {
-  if (phaseKey === 'base-zone' || phaseKey === 'start-position') {
-    return COURT_SLOTS[slotIndex]
+// Looks up where a given on-court slot should render for the selected
+// phase and converts it to pixels - the only place in this module (or any
+// caller) that needs to know a pixel exists. Base Zone is computed
+// (COURT_SLOTS[slotIndex], correct by construction) rather than looked up
+// in the table for every rotation/mode, since it's identical everywhere;
+// COURT_SLOTS predates the meter coordinate space, so it's converted
+// through the same legacy-origin conversion the seed data was generated
+// with (see court-geometry.ts). Every other phase is a straight table
+// lookup - no coordinate literal lives in this file.
+export function getPhasePosition(context: PositionContext): PixelPoint {
+  if (context.phaseKey === 'base') {
+    return metersToPixels(legacyMockupPixelsToMeters(COURT_SLOTS[context.slotIndex]))
   }
 
-  const row: Row = BACK_ROW_SLOT_INDICES.includes(slotIndex) ? 'back' : 'front'
-  const targets = ROLE_TARGETS[phaseKey]
+  const table = FORMATION_TABLES[context.system]
+  const meters =
+    context.mode === 'receive'
+      ? table.receive[context.rotationIndex][context.phaseKey][context.slotIndex]
+      : table.serve[context.rotationIndex][context.phaseKey][context.slotIndex]
 
-  return role === 'libero' ? targets.libero : targets[role][row]
+  return metersToPixels(meters)
 }

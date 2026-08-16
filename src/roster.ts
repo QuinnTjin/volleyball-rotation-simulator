@@ -3,6 +3,8 @@ import { defaultTeam } from './models'
 
 export type PositionKey = 'setter' | 'opposite' | 'outside' | 'middle-blocker' | 'libero'
 
+export type RotationSystem = '5-1' | '4-2' | '6-2'
+
 export type RosterPlayer = {
   id: string
   teamId: Team['id']
@@ -116,17 +118,19 @@ export const defaultRoster: RosterPlayer[] = [
   },
 ]
 
-// Exact position counts for the six on-court starters of a 5-1 lineup: one
-// setter, one opposite, two outsides, two middle blockers. Exact, not
-// minimums - six starters with three outsides and one middle isn't a small
-// 5-1, it's a different system this app doesn't model. The libero is
-// excluded because they're an optional seventh starter, never one of the
-// six in the serve order.
-const STARTER_POSITION_REQUIREMENTS: Record<Exclude<PositionKey, 'libero'>, number> = {
-  setter: 1,
-  opposite: 1,
-  outside: 2,
-  'middle-blocker': 2,
+// Exact position counts for the six on-court starters of each system.
+// Exact, not minimums - six starters with three outsides and one middle
+// isn't a small 5-1, it's a different system this app doesn't model. The
+// libero is excluded because they're an optional seventh starter, never
+// one of the six in the serve order.
+//
+// 4-2 and 6-2 both run two setters (placed opposite each other in the
+// rotation, taking the slot a 5-1's dedicated Opposite would occupy) and no
+// dedicated Opposite - see rotations.ts SERVE_ORDER_TEMPLATES.
+const STARTER_POSITION_REQUIREMENTS: Record<RotationSystem, Record<Exclude<PositionKey, 'libero'>, number>> = {
+  '5-1': { setter: 1, opposite: 1, outside: 2, 'middle-blocker': 2 },
+  '4-2': { setter: 2, opposite: 0, outside: 2, 'middle-blocker': 2 },
+  '6-2': { setter: 2, opposite: 0, outside: 2, 'middle-blocker': 2 },
 }
 
 export const MAX_ROSTER_SIZE = 12
@@ -134,14 +138,16 @@ export const MAX_ROSTER_SIZE = 12
 const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six']
 
 // Human-readable warnings for every way the starters differ from a legal
-// 5-1 lineup, e.g. "A 5-1 lineup needs two starting Middle Blockers." An
-// empty result means the starting lineup is valid and the court can render.
-export function getRosterWarnings(roster: RosterPlayer[]): string[] {
+// lineup for the given system, e.g. "A 5-1 lineup needs two starting
+// Middle Blockers." An empty result means the starting lineup is valid and
+// the court can render.
+export function getRosterWarnings(roster: RosterPlayer[], system: RotationSystem): string[] {
   const starters = roster.filter((rosterPlayer) => rosterPlayer.isStarter)
   const warnings: string[] = []
+  const requirements = STARTER_POSITION_REQUIREMENTS[system]
 
-  for (const position of Object.keys(STARTER_POSITION_REQUIREMENTS) as Exclude<PositionKey, 'libero'>[]) {
-    const required = STARTER_POSITION_REQUIREMENTS[position]
+  for (const position of Object.keys(requirements) as Exclude<PositionKey, 'libero'>[]) {
+    const required = requirements[position]
     const starterCount = starters.filter((rosterPlayer) => rosterPlayer.position === position).length
 
     if (starterCount === required) {
@@ -149,11 +155,11 @@ export function getRosterWarnings(roster: RosterPlayer[]): string[] {
     }
 
     const label = POSITION_FULL_NAMES[position]
-    const plural = required > 1 ? 's' : ''
+    const plural = required !== 1 ? 's' : ''
     warnings.push(
       starterCount < required
-        ? `A 5-1 lineup needs ${NUMBER_WORDS[required]} starting ${label}${plural}.`
-        : `A 5-1 lineup can only have ${NUMBER_WORDS[required]} starting ${label}${plural}.`,
+        ? `A ${system} lineup needs ${NUMBER_WORDS[required]} starting ${label}${plural}.`
+        : `A ${system} lineup can only have ${NUMBER_WORDS[required]} starting ${label}${plural}.`,
     )
   }
 
