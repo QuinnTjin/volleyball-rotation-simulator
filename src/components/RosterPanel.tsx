@@ -48,10 +48,11 @@ function PlayerRow({
 
   return (
     <div className="flex flex-col">
-      <div
+      <button
+        type="button"
         onClick={onSelect}
         className={clsx(
-          'flex cursor-pointer items-center gap-2.5 rounded-lg p-2 hover:bg-page',
+          'flex w-full cursor-pointer items-center gap-2.5 rounded-lg p-2 text-left hover:bg-page active:bg-page',
           offCourt && 'opacity-75 hover:opacity-100',
           selected && 'bg-page',
         )}
@@ -73,7 +74,7 @@ function PlayerRow({
         >
           {chip}
         </span>
-      </div>
+      </button>
 
       {selected && (
         <div className="mt-1 flex flex-col gap-2 rounded-[10px] border-[1.5px] border-brand bg-[#fbfbff] p-2.5">
@@ -115,25 +116,33 @@ function PlayerRow({
 
           <div className="flex gap-1.5">
             {COLOR_PALETTE.map((color) => (
-              <span
+              <button
                 key={color}
+                type="button"
                 onClick={() => onUpdatePlayer(player.id, { color })}
-                className="h-6 w-6 cursor-pointer rounded-full lg:h-[18px] lg:w-[18px]"
-                style={{
-                  background: color,
-                  outline: color === player.color ? '2px solid #1d1e24' : 'none',
-                  outlineOffset: '1px',
-                }}
-              />
+                aria-label={`Use ${color} for this player`}
+                aria-pressed={color === player.color}
+                className="flex h-11 flex-1 cursor-pointer items-center justify-center active:opacity-70 lg:h-[18px] lg:w-[18px] lg:flex-none"
+              >
+                <span
+                  className="h-6 w-6 rounded-full lg:h-full lg:w-full"
+                  style={{
+                    background: color,
+                    outline: color === player.color ? '2px solid #1d1e24' : 'none',
+                    outlineOffset: '1px',
+                  }}
+                />
+              </button>
             ))}
           </div>
 
-          <div
+          <button
+            type="button"
             onClick={onRequestRemove}
-            className="mt-0.5 cursor-pointer rounded-[7px] border border-[#f0d7d3] p-[7px] text-center text-[12px] font-semibold text-danger hover:bg-[#fdf3f1]"
+            className="mt-0.5 flex min-h-11 w-full cursor-pointer items-center justify-center rounded-[7px] border border-[#f0d7d3] p-[7px] text-center text-[12px] font-semibold text-danger hover:bg-[#fdf3f1] active:bg-[#fdf3f1] lg:min-h-0"
           >
             Remove from roster
-          </div>
+          </button>
         </div>
       )}
     </div>

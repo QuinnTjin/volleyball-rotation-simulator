@@ -26,14 +26,14 @@ function RemoveConfirmModal({ playerName, systemLabel, onCancel, onConfirm }: Re
           <button
             type="button"
             onClick={onCancel}
-            className="cursor-pointer rounded-lg bg-chip px-4 py-2 text-[13px] font-semibold hover:bg-chip-hover"
+            className="min-h-11 cursor-pointer rounded-lg bg-chip px-4 py-2 text-[13px] font-semibold hover:bg-chip-hover active:bg-chip-hover"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="cursor-pointer rounded-lg bg-danger px-4 py-2 text-[13px] font-semibold text-white hover:bg-danger-dark"
+            className="min-h-11 cursor-pointer rounded-lg bg-danger px-4 py-2 text-[13px] font-semibold text-white hover:bg-danger-dark active:bg-danger-dark"
           >
             Remove
           </button>

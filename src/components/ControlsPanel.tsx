@@ -63,36 +63,52 @@ function ControlsPanel({
 
         {/* Rotation stepper — wired to the real 5-1 rotations. */}
         <div className="flex items-center gap-1.5 text-[12px] font-semibold text-ash">
-          <span
+          <button
+            type="button"
             onClick={() => step(-1)}
-            className={clsx('px-1.5 py-0.5', disabled ? 'cursor-default text-[#c9cad1]' : 'cursor-pointer hover:opacity-75')}
+            disabled={disabled}
+            aria-label="Previous rotation"
+            className={clsx(
+              'flex min-h-11 min-w-11 items-center justify-center lg:min-h-0 lg:min-w-0 lg:px-1.5 lg:py-0.5',
+              disabled ? 'cursor-default text-[#c9cad1]' : 'cursor-pointer hover:opacity-75 active:opacity-50',
+            )}
           >
             ‹
-          </span>
+          </button>
           <div className="flex flex-1 justify-center gap-[3px]">
             {Array.from({ length: ROTATION_COUNT }, (_, index) => (
-              <span
+              <button
                 key={index}
-                onClick={() => !disabled && onSelectRotation(index)}
+                type="button"
+                onClick={() => onSelectRotation(index)}
+                disabled={disabled}
+                aria-label={`Rotation ${index + 1}`}
+                aria-pressed={index === rotationIndex}
                 className={clsx(
-                  'flex h-9 w-9 items-center justify-center rounded-md lg:h-6 lg:w-6',
+                  'flex h-11 flex-1 items-center justify-center rounded-md lg:h-6 lg:w-6 lg:flex-none',
                   disabled
                     ? 'cursor-default bg-chip text-[#c9cad1]'
                     : index === rotationIndex
-                      ? 'cursor-pointer bg-brand text-white'
-                      : 'cursor-pointer bg-chip text-ash',
+                      ? 'cursor-pointer bg-brand text-white active:opacity-80'
+                      : 'cursor-pointer bg-chip text-ash active:opacity-80',
                 )}
               >
                 {index + 1}
-              </span>
+              </button>
             ))}
           </div>
-          <span
+          <button
+            type="button"
             onClick={() => step(1)}
-            className={clsx('px-1.5 py-0.5', disabled ? 'cursor-default text-[#c9cad1]' : 'cursor-pointer hover:opacity-75')}
+            disabled={disabled}
+            aria-label="Next rotation"
+            className={clsx(
+              'flex min-h-11 min-w-11 items-center justify-center lg:min-h-0 lg:min-w-0 lg:px-1.5 lg:py-0.5',
+              disabled ? 'cursor-default text-[#c9cad1]' : 'cursor-pointer hover:opacity-75 active:opacity-50',
+            )}
           >
             ›
-          </span>
+          </button>
         </div>
 
         <div className="h-px bg-line" />
@@ -101,16 +117,19 @@ function ControlsPanel({
             conventional position. Auto-play between phases is deferred. */}
         <div className="flex flex-col gap-0.5 text-[12.5px]">
           {phases.map((phase, index) => (
-            <div
+            <button
               key={phase.key}
-              onClick={() => !disabled && onSelectPhase(index)}
+              type="button"
+              onClick={() => onSelectPhase(index)}
+              disabled={disabled}
+              aria-pressed={index === phaseIndex}
               className={clsx(
-                'flex items-center gap-2.5 rounded-[7px] px-2 py-1.5',
+                'flex min-h-11 w-full items-center gap-2.5 rounded-[7px] px-2 py-1.5 text-left lg:min-h-0',
                 disabled
                   ? 'cursor-default text-[#c9cad1]'
                   : index === phaseIndex
                     ? 'cursor-pointer bg-brand text-white'
-                    : 'cursor-pointer text-ash hover:bg-chip',
+                    : 'cursor-pointer text-ash hover:bg-chip active:bg-chip',
               )}
             >
               <span
@@ -120,7 +139,7 @@ function ControlsPanel({
                 )}
               />
               {phase.label}
-            </div>
+            </button>
           ))}
         </div>
       </div>
