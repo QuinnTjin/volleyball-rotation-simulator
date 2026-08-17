@@ -11,11 +11,11 @@ function RemoveConfirmModal({ playerName, systemLabel, onCancel, onConfirm }: Re
   return (
     <div
       onClick={onCancel}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[rgba(29,30,36,0.45)]"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-[rgba(29,30,36,0.45)] p-4"
     >
       <div
         onClick={(event) => event.stopPropagation()}
-        className="flex w-80 flex-col gap-2.5 rounded-[14px] bg-card p-[22px] shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
+        className="flex w-full max-w-[320px] flex-col gap-2.5 rounded-[14px] bg-card p-[22px] shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
       >
         <span className="text-[15px] font-bold">Remove {playerName}?</span>
         <span className="text-[13px] leading-normal text-ash">

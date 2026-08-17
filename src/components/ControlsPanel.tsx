@@ -39,7 +39,7 @@ function ControlsPanel({
   }
 
   return (
-    <div className="flex w-60 flex-none flex-col gap-3.5">
+    <div className="flex w-full flex-col gap-3.5">
       <div className="flex flex-col gap-3 rounded-xl border border-line bg-card p-3.5">
         {/* Playback — deferred, rendered in the mockup's disabled styling. */}
         <div className="flex items-center gap-2.5" title="Playback — coming soon">
@@ -75,7 +75,7 @@ function ControlsPanel({
                 key={index}
                 onClick={() => !disabled && onSelectRotation(index)}
                 className={clsx(
-                  'flex h-6 w-6 items-center justify-center rounded-md',
+                  'flex h-9 w-9 items-center justify-center rounded-md lg:h-6 lg:w-6',
                   disabled
                     ? 'cursor-default bg-chip text-[#c9cad1]'
                     : index === rotationIndex

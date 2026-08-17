@@ -82,7 +82,7 @@ function PlayerRow({
             type="text"
             value={player.name}
             onChange={(event) => onUpdatePlayer(player.id, { name: event.target.value })}
-            className="box-border w-full rounded-md border border-line bg-card px-2 py-1.5 text-[13px] outline-none"
+            className="box-border w-full rounded-md border border-line bg-card px-2.5 py-2 text-base outline-none"
           />
 
           <div className="flex gap-2">
@@ -93,7 +93,7 @@ function PlayerRow({
                 onChange={(event) =>
                   onUpdatePlayer(player.id, { position: event.target.value as PositionKey })
                 }
-                className="w-full rounded-md border border-line bg-card px-1 py-1.5 text-[12.5px]"
+                className="w-full rounded-md border border-line bg-card px-2 py-2 text-base"
               >
                 {POSITION_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -118,7 +118,7 @@ function PlayerRow({
               <span
                 key={color}
                 onClick={() => onUpdatePlayer(player.id, { color })}
-                className="h-[18px] w-[18px] cursor-pointer rounded-full"
+                className="h-6 w-6 cursor-pointer rounded-full lg:h-[18px] lg:w-[18px]"
                 style={{
                   background: color,
                   outline: color === player.color ? '2px solid #1d1e24' : 'none',
@@ -165,7 +165,7 @@ function RosterPanel({
   }
 
   return (
-    <div className="flex w-[250px] flex-none flex-col gap-1.5 rounded-xl border border-line bg-card p-3.5">
+    <div className="flex w-full flex-col gap-1.5 rounded-xl border border-line bg-card p-3.5 lg:w-[250px]">
       <div className="mb-1 flex items-center justify-between">
         <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-muted">On court</span>
         <span className="text-[11.5px] text-muted">{onCourtRows.length}</span>

@@ -76,7 +76,7 @@ function AppHeader({ systemLabel, onSelectSystem, warning }: AppHeaderProps) {
   }
 
   return (
-    <header className="flex items-center gap-3.5 border-b border-line bg-card px-7 py-4">
+    <header className="flex items-center gap-2 border-b border-line bg-card px-3 py-4 sm:gap-3.5 sm:px-5 lg:px-7">
       <div className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-brand text-sm font-bold text-white">
         V
       </div>
@@ -91,7 +91,7 @@ function AppHeader({ systemLabel, onSelectSystem, warning }: AppHeaderProps) {
             {systemLabel} System <span className="text-muted">▾</span>
           </div>
           {openMenu === 'system' && (
-            <div className="absolute left-0 top-[42px] z-[60] flex w-[230px] flex-col gap-0.5 rounded-[10px] border border-line bg-card p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
+            <div className="fixed inset-x-3 top-[60px] z-[60] flex flex-col gap-0.5 rounded-[10px] border border-line bg-card p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.12)] sm:absolute sm:inset-x-auto sm:left-0 sm:top-[42px] sm:w-[230px]">
               <div className="px-2.5 pb-1 pt-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em] text-muted">
                 Presets
               </div>
@@ -130,7 +130,7 @@ function AppHeader({ systemLabel, onSelectSystem, warning }: AppHeaderProps) {
             i
           </div>
           {openMenu === 'info' && (
-            <div className="absolute left-[-110px] top-9 z-[60] flex w-[280px] flex-col gap-2 rounded-[10px] border border-line bg-card p-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
+            <div className="fixed inset-x-3 top-[60px] z-[60] flex flex-col gap-2 rounded-[10px] border border-line bg-card p-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.12)] sm:absolute sm:inset-x-auto sm:left-[-110px] sm:top-9 sm:w-[280px]">
               <span className="text-[13px] font-bold">{systemLabel} System</span>
               <span className="text-[12px] leading-relaxed text-ash">{SYSTEM_INFO[systemLabel].desc}</span>
               <div className="flex flex-col gap-1.5">
