@@ -28,6 +28,9 @@
   html {
     /* The mockup is a single light theme; opt out of the OS dark scheme. */
     color-scheme: light;
+    /* Suppress the grey/blue flash mobile browsers paint over a tapped
+       element; our own :active states (added in D5) give tap feedback. */
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
@@ -42,7 +45,12 @@
   }
 
   #root {
-    min-height: 100vh;
+    /* dvh (dynamic viewport height) tracks the *currently visible* height as
+       mobile browser chrome (the URL bar) slides in and out. Plain vh is the
+       *large* viewport - it measures as if the chrome were always retracted,
+       so 100vh overflows the visible area whenever the URL bar is showing.
+       On desktop the two are identical, so this is a no-op there. */
+    min-height: 100dvh;
   }
 
   a {
@@ -55,5 +63,23 @@
   input,
   select {
     font-family: inherit;
+    /* iOS Safari auto-zooms when a focused form control's text is under 16px.
+       This is the floor that prevents it. Controls that set a smaller size
+       via a Tailwind utility still override this until D4 raises them. */
+    font-size: 16px;
+  }
+
+  /* Scoped to interactive elements only - never a global `*` rule, which
+     would also kill the page's pinch-to-zoom. `manipulation` keeps panning
+     and pinch-zoom but drops the ~300ms double-tap-to-zoom wait, so taps on
+     controls register instantly. Covers the ARIA roles our current
+     `<div onClick>` controls use; D5 converts those to real <button>s. */
+  button,
+  a,
+  select,
+  input,
+  [role="switch"],
+  [role="button"] {
+    touch-action: manipulation;
   }
 }

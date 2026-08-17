@@ -187,33 +187,32 @@ function App() {
   const playerToRemove = roster.find((player) => player.id === confirmRemoveId)
 
   return (
-    <div className="min-h-screen pb-7">
+    <div className="min-h-dvh pb-7">
       <AppHeader systemLabel={system} onSelectSystem={setSystem} warning={warnings[0]} />
 
-      <div className="flex items-start justify-center gap-5 px-7 pt-5">
-        <RosterPanel
-          roster={roster}
-          onCourtRows={onCourtRows}
-          offCourtRows={offCourtRows}
-          selectedPlayerId={selectedPlayerId}
-          onSelectPlayer={toggleSelectPlayer}
-          onUpdatePlayer={updatePlayer}
-          onRequestRemove={setConfirmRemoveId}
-          onAddPlayer={addPlayer}
-          canAddPlayer={roster.length < MAX_ROSTER_SIZE}
-        />
+      {/* Responsive shell. base (<640): single column, court first. sm
+          (640-1023): court + controls side by side, roster full-width below.
+          lg (>=1024): the original roster / court / controls row, restored
+          with order-* since the DOM order below is the mobile order. Each
+          panel gets a thin layout wrapper so the shell can drive flex/order
+          without the panel components needing a className prop. */}
+      <div className="flex flex-col gap-5 px-3 pt-5 sm:flex-row sm:flex-wrap sm:items-start sm:justify-center sm:px-5 lg:flex-nowrap lg:px-7">
+        {/* Court - the product: first on mobile, middle on desktop. Pinned to
+            540px at lg so it renders at its exact pre-refactor footprint. */}
+        <div className="w-full sm:flex-1 lg:order-2 lg:w-[540px] lg:flex-none">
+          <Court
+            dots={dots}
+            rotationNumber={rotationIndex + 1}
+            gridVisible={view.grid}
+            numbersVisible={view.numbers}
+            invalid={isLineupInvalid}
+            warning={warnings.join(' ')}
+            onSelectDot={toggleSelectPlayer}
+          />
+        </div>
 
-        <Court
-          dots={dots}
-          rotationNumber={rotationIndex + 1}
-          gridVisible={view.grid}
-          numbersVisible={view.numbers}
-          invalid={isLineupInvalid}
-          warning={warnings.join(' ')}
-          onSelectDot={toggleSelectPlayer}
-        />
-
-        <div className="flex w-60 flex-none flex-col gap-3">
+        {/* Controls (mode toggle + panel) - second on mobile, last on desktop. */}
+        <div className="flex w-full flex-col gap-3 sm:w-60 sm:flex-none lg:order-3">
           {/* Receive/Serve mode toggle - relocated here (was in AppHeader)
               so it sits directly above the panel whose phase list it drives. */}
           <div className="flex w-full rounded-lg bg-chip p-[3px] text-[12.5px] font-semibold">
@@ -246,6 +245,22 @@ function App() {
             disabled={isLineupInvalid}
             view={view}
             onToggleView={(key) => setView((current) => ({ ...current, [key]: !current[key] }))}
+          />
+        </div>
+
+        {/* Roster - last on mobile, first on desktop; its own full-width row
+            on tablet (w-full below lg makes it wrap under the two panels). */}
+        <div className="w-full lg:order-1 lg:w-auto">
+          <RosterPanel
+            roster={roster}
+            onCourtRows={onCourtRows}
+            offCourtRows={offCourtRows}
+            selectedPlayerId={selectedPlayerId}
+            onSelectPlayer={toggleSelectPlayer}
+            onUpdatePlayer={updatePlayer}
+            onRequestRemove={setConfirmRemoveId}
+            onAddPlayer={addPlayer}
+            canAddPlayer={roster.length < MAX_ROSTER_SIZE}
           />
         </div>
       </div>

@@ -76,7 +76,7 @@ function AppHeader({ systemLabel, onSelectSystem, warning }: AppHeaderProps) {
   }
 
   return (
-    <header className="flex items-center gap-3.5 border-b border-line bg-card px-7 py-4">
+    <header className="flex items-center gap-2 border-b border-line bg-card px-3 py-4 sm:gap-3.5 sm:px-5 lg:px-7">
       <div className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-brand text-sm font-bold text-white">
         V
       </div>
@@ -84,21 +84,25 @@ function AppHeader({ systemLabel, onSelectSystem, warning }: AppHeaderProps) {
 
       <div ref={menuRef} className="flex items-center gap-3.5">
         <div className="relative">
-          <div
+          <button
+            type="button"
             onClick={() => toggleMenu('system')}
-            className="flex cursor-pointer items-center gap-2 rounded-lg bg-chip px-3.5 py-2 text-[13px] font-semibold hover:bg-chip-hover"
+            aria-expanded={openMenu === 'system'}
+            className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg bg-chip px-3.5 py-2 text-[13px] font-semibold hover:bg-chip-hover active:bg-chip-hover lg:min-h-0"
           >
             {systemLabel} System <span className="text-muted">▾</span>
-          </div>
+          </button>
           {openMenu === 'system' && (
-            <div className="absolute left-0 top-[42px] z-[60] flex w-[230px] flex-col gap-0.5 rounded-[10px] border border-line bg-card p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
+            <div className="fixed inset-x-3 top-[60px] z-[60] flex flex-col gap-0.5 rounded-[10px] border border-line bg-card p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.12)] sm:absolute sm:inset-x-auto sm:left-0 sm:top-[42px] sm:w-[230px]">
               <div className="px-2.5 pb-1 pt-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em] text-muted">
                 Presets
               </div>
               {SYSTEM_PRESETS.map((preset) => (
-                <div
+                <button
                   key={preset.label}
+                  type="button"
                   title={preset.available ? undefined : 'Coming soon'}
+                  disabled={!preset.available}
                   onClick={() => {
                     if (preset.available) {
                       onSelectSystem(preset.label as RotationSystem)
@@ -106,8 +110,8 @@ function AppHeader({ systemLabel, onSelectSystem, warning }: AppHeaderProps) {
                     }
                   }}
                   className={clsx(
-                    'flex flex-col gap-0.5 rounded-[7px] px-2.5 py-2',
-                    preset.available ? 'cursor-pointer hover:bg-chip' : 'cursor-not-allowed opacity-45',
+                    'flex w-full flex-col gap-0.5 rounded-[7px] px-2.5 py-2 text-left',
+                    preset.available ? 'cursor-pointer hover:bg-chip active:bg-chip' : 'cursor-not-allowed opacity-45',
                     preset.label === systemLabel && 'bg-brand-soft',
                   )}
                 >
@@ -116,21 +120,26 @@ function AppHeader({ systemLabel, onSelectSystem, warning }: AppHeaderProps) {
                     {!preset.available && ' · soon'}
                   </span>
                   <span className="text-[11.5px] text-muted">{preset.desc}</span>
-                </div>
+                </button>
               ))}
             </div>
           )}
         </div>
 
         <div className="relative">
-          <div
+          <button
+            type="button"
             onClick={() => toggleMenu('info')}
-            className="flex h-[26px] w-[26px] cursor-pointer items-center justify-center rounded-full bg-chip font-serif text-[12.5px] font-bold italic text-muted hover:bg-brand-soft hover:text-brand"
+            aria-expanded={openMenu === 'info'}
+            aria-label="About this system"
+            className="flex h-11 w-11 cursor-pointer items-center justify-center lg:h-[26px] lg:w-[26px]"
           >
-            i
-          </div>
+            <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-chip font-serif text-[12.5px] font-bold italic text-muted hover:bg-brand-soft hover:text-brand active:bg-brand-soft active:text-brand lg:h-full lg:w-full">
+              i
+            </span>
+          </button>
           {openMenu === 'info' && (
-            <div className="absolute left-[-110px] top-9 z-[60] flex w-[280px] flex-col gap-2 rounded-[10px] border border-line bg-card p-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
+            <div className="fixed inset-x-3 top-[60px] z-[60] flex flex-col gap-2 rounded-[10px] border border-line bg-card p-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.12)] sm:absolute sm:inset-x-auto sm:left-[-110px] sm:top-9 sm:w-[280px]">
               <span className="text-[13px] font-bold">{systemLabel} System</span>
               <span className="text-[12px] leading-relaxed text-ash">{SYSTEM_INFO[systemLabel].desc}</span>
               <div className="flex flex-col gap-1.5">

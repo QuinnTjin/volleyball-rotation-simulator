@@ -48,10 +48,11 @@ function PlayerRow({
 
   return (
     <div className="flex flex-col">
-      <div
+      <button
+        type="button"
         onClick={onSelect}
         className={clsx(
-          'flex cursor-pointer items-center gap-2.5 rounded-lg p-2 hover:bg-page',
+          'flex w-full cursor-pointer items-center gap-2.5 rounded-lg p-2 text-left hover:bg-page active:bg-page',
           offCourt && 'opacity-75 hover:opacity-100',
           selected && 'bg-page',
         )}
@@ -73,7 +74,7 @@ function PlayerRow({
         >
           {chip}
         </span>
-      </div>
+      </button>
 
       {selected && (
         <div className="mt-1 flex flex-col gap-2 rounded-[10px] border-[1.5px] border-brand bg-[#fbfbff] p-2.5">
@@ -82,7 +83,7 @@ function PlayerRow({
             type="text"
             value={player.name}
             onChange={(event) => onUpdatePlayer(player.id, { name: event.target.value })}
-            className="box-border w-full rounded-md border border-line bg-card px-2 py-1.5 text-[13px] outline-none"
+            className="box-border w-full rounded-md border border-line bg-card px-2.5 py-2 text-base outline-none"
           />
 
           <div className="flex gap-2">
@@ -93,7 +94,7 @@ function PlayerRow({
                 onChange={(event) =>
                   onUpdatePlayer(player.id, { position: event.target.value as PositionKey })
                 }
-                className="w-full rounded-md border border-line bg-card px-1 py-1.5 text-[12.5px]"
+                className="w-full rounded-md border border-line bg-card px-2 py-2 text-base"
               >
                 {POSITION_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -115,25 +116,33 @@ function PlayerRow({
 
           <div className="flex gap-1.5">
             {COLOR_PALETTE.map((color) => (
-              <span
+              <button
                 key={color}
+                type="button"
                 onClick={() => onUpdatePlayer(player.id, { color })}
-                className="h-[18px] w-[18px] cursor-pointer rounded-full"
-                style={{
-                  background: color,
-                  outline: color === player.color ? '2px solid #1d1e24' : 'none',
-                  outlineOffset: '1px',
-                }}
-              />
+                aria-label={`Use ${color} for this player`}
+                aria-pressed={color === player.color}
+                className="flex h-11 flex-1 cursor-pointer items-center justify-center active:opacity-70 lg:h-[18px] lg:w-[18px] lg:flex-none"
+              >
+                <span
+                  className="h-6 w-6 rounded-full lg:h-full lg:w-full"
+                  style={{
+                    background: color,
+                    outline: color === player.color ? '2px solid #1d1e24' : 'none',
+                    outlineOffset: '1px',
+                  }}
+                />
+              </button>
             ))}
           </div>
 
-          <div
+          <button
+            type="button"
             onClick={onRequestRemove}
-            className="mt-0.5 cursor-pointer rounded-[7px] border border-[#f0d7d3] p-[7px] text-center text-[12px] font-semibold text-danger hover:bg-[#fdf3f1]"
+            className="mt-0.5 flex min-h-11 w-full cursor-pointer items-center justify-center rounded-[7px] border border-[#f0d7d3] p-[7px] text-center text-[12px] font-semibold text-danger hover:bg-[#fdf3f1] active:bg-[#fdf3f1] lg:min-h-0"
           >
             Remove from roster
-          </div>
+          </button>
         </div>
       )}
     </div>
@@ -165,7 +174,7 @@ function RosterPanel({
   }
 
   return (
-    <div className="flex w-[250px] flex-none flex-col gap-1.5 rounded-xl border border-line bg-card p-3.5">
+    <div className="flex w-full flex-col gap-1.5 rounded-xl border border-line bg-card p-3.5 lg:w-[250px]">
       <div className="mb-1 flex items-center justify-between">
         <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-muted">On court</span>
         <span className="text-[11.5px] text-muted">{onCourtRows.length}</span>
